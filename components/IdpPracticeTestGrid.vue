@@ -27,7 +27,7 @@ import { idpCardFormat, idpCardTitle, idpTestAccessLink, idpTestAnswersLink } fr
 
 const props = withDefaults(defineProps<{
   tests: any[]
-  skill: 'reading' | 'listening'
+  skill: 'reading' | 'listening' | 'writing' | 'speaking'
   max?: number
   showNav?: boolean
 }>(), {

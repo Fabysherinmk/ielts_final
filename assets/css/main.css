@@ -28,8 +28,8 @@
   --warn: #F59E0B;
   --err: #E11D48;            /* rose-600 */
   /* IELTS exam palette (used only in the test-taking UI) */
-  --ielts-navy: #16227a;
-  --ielts-navy-2: #0e1759;
+  --ielts-navy: #e31837;
+  --ielts-navy-2: #c5142f;
   --ielts-orange: #E27D27;
 
   --radius-sm: 6px;
@@ -346,12 +346,12 @@ code {
    IELTS exam UI — faithful to computer-delivered IELTS (refined)
    ========================================================================= */
 .ielts-topbar {
-  background: linear-gradient(180deg, var(--ielts-navy) 0%, var(--ielts-navy-2) 100%);
+  background: linear-gradient(180deg, #e31837 0%, #c5142f 100%);
   color: #fff;
   height: 58px;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 22px;
-  box-shadow: 0 4px 12px -4px rgba(22, 34, 122, 0.45);
+  box-shadow: 0 4px 12px -4px rgba(227, 24, 55, 0.45);
   position: sticky; top: 0; z-index: var(--z-nav);
   font-family: 'Atkinson Hyperlegible', system-ui, sans-serif;
 }
@@ -1425,6 +1425,153 @@ code {
   .admin-sidebar a.router-link-active { border-bottom-color: var(--primary); border-left: none; background: transparent; }
 }
 
+/* =========================================================================
+   IDP-style Practice Test Cards
+   ========================================================================= */
+.idp-practice-grid-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.idp-practice-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  flex: 1;
+}
+
+@media (max-width: 1200px) {
+  .idp-practice-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .idp-practice-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .idp-practice-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.idp-practice-grid__nav-btn {
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.idp-practice-grid__nav-btn:hover:not(:disabled) {
+  border-color: #e11b2b;
+  color: #e11b2b;
+}
+
+.idp-practice-grid__nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.idp-practice-card {
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.15s ease;
+}
+
+.idp-practice-card:hover {
+  border-color: #e11b2b;
+  box-shadow: 0 4px 16px rgba(225, 27, 43, 0.08);
+}
+
+.idp-practice-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.idp-practice-card__doc {
+  width: 48px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.idp-practice-card__badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: #111827;
+  color: #fff;
+}
+
+.idp-practice-card__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.idp-practice-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.idp-practice-card__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.idp-practice-card__btn--primary {
+  background: #e11b2b;
+  color: #fff;
+}
+
+.idp-practice-card__btn--primary:hover {
+  background: #c41824;
+  color: #fff;
+  text-decoration: none;
+}
+
+.idp-practice-card__btn--secondary {
+  background: #fff;
+  color: #111827;
+  border: 1.5px solid #e5e7eb;
+}
+
+.idp-practice-card__btn--secondary:hover {
+  border-color: #111827;
+  color: #111827;
+  text-decoration: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
@@ -1902,4 +2049,160 @@ code {
 @media (max-width: 640px) {
   .idp-practice-grid { grid-template-columns: 1fr; }
   .idp-practice-card { min-height: 240px; }
+}
+
+/* =========================================================================
+   IDP-style Test & Answer Pages
+   ========================================================================= */
+.idp-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.idp-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #5a5a5a;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  margin-bottom: 24px;
+}
+
+.idp-page__back:hover {
+  color: #d92d3e;
+  text-decoration: none;
+}
+
+.idp-page__head {
+  margin-bottom: 40px;
+}
+
+.idp-page__title {
+  font-size: 36px;
+  font-weight: 600;
+  color: #141414;
+  margin: 0 0 12px;
+  line-height: 1.2;
+}
+
+.idp-page__subtitle {
+  font-size: 18px;
+  color: #5a5a5a;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.idp-section {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.idp-section__title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #141414;
+  margin: 0 0 20px;
+  line-height: 1.3;
+}
+
+.idp-section__instructions {
+  font-size: 16px;
+  color: #3a3a3a;
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.idp-passage {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #141414;
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 24px 28px;
+  margin-bottom: 28px;
+}
+
+.idp-question {
+  margin-bottom: 24px;
+}
+
+.idp-question__number {
+  font-weight: 700;
+  font-size: 16px;
+  color: #141414;
+  margin-bottom: 8px;
+}
+
+.idp-question__text {
+  font-size: 16px;
+  color: #141414;
+  line-height: 1.7;
+  margin-bottom: 12px;
+}
+
+.idp-answer {
+  background: #e8f4f8;
+  border: 1px solid #b8d4e3;
+  border-left: 4px solid #2b85b4;
+  padding: 18px 22px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.idp-answer__label {
+  font-weight: 700;
+  font-size: 14px;
+  color: #2b85b4;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.idp-answer__content {
+  font-size: 16px;
+  color: #141414;
+  line-height: 1.7;
+}
+
+.idp-answer__correct {
+  color: #2b85b4;
+  font-weight: 700;
+}
+
+.idp-writing-prompt {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 28px;
+  margin-bottom: 24px;
+}
+
+.idp-speaking-guide {
+  background: #fdf6f7;
+  border: 1px solid #f1ccd1;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .idp-page {
+    padding: 20px 16px 40px;
+  }
+
+  .idp-page__title {
+    font-size: 28px;
+  }
+
+  .idp-section {
+    padding: 20px;
+  }
 }

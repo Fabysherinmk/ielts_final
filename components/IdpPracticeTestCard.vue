@@ -18,7 +18,7 @@
       <NuxtLink :to="accessTo" class="idp-practice-card__btn idp-practice-card__btn--primary">
         Access now
       </NuxtLink>
-      <NuxtLink v-if="answersTo" :to="answersTo" class="idp-practice-card__btn idp-practice-card__btn--secondary">
+      <NuxtLink v-if="answersTo" :to="answersTo" target="_blank" class="idp-practice-card__btn idp-practice-card__btn--secondary">
         View answers
       </NuxtLink>
     </div>

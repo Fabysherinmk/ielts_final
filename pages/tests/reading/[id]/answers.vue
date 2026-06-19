@@ -1,24 +1,32 @@
 <template>
-  <div class="container answers-page">
-    <header class="answers-head">
-      <NuxtLink to="/tests" class="back">← Back to tests</NuxtLink>
-      <h1>{{ test?.title || 'Answers' }}</h1>
-      <p class="text-muted">Correct answers for this reading test.</p>
-    </header>
-
+  <div class="idp-page">
+    <NuxtLink to="/tests" class="idp-page__back">
+      <Icon name="chevron-left" :size="14" />
+      Back to tests
+    </NuxtLink>
+    <div class="idp-page__head">
+      <h1 class="idp-page__title">{{ test?.title || 'Reading Test Answers' }}</h1>
+      <p class="idp-page__subtitle">Correct answers for this reading test</p>
+    </div>
     <main v-if="test">
-      <section v-for="(s, si) in test.sections" :key="s.id" class="section">
-        <h2>Passage {{ si + 1 }}: {{ s.title }}</h2>
-        <p v-if="s.instructions" class="text-muted" v-html="s.instructions"></p>
-        <ol class="qa-list">
-          <li v-for="q in s.questions" :key="q.id">
-            <div class="q-head"><strong>{{ q.number }}.</strong> <span v-html="q.prompt"></span></div>
-            <div class="q-answer">Answer: <strong>{{ renderAnswer(q.answer) }}</strong></div>
-          </li>
-        </ol>
-      </section>
+      <div v-for="(s, si) in test.sections" :key="s.id" class="idp-section">
+        <h2 class="idp-section__title">Passage {{ si + 1 }}: {{ s.title }}</h2>
+        <div v-if="s.instructions" class="idp-section__instructions" v-html="s.instructions"></div>
+        <div v-if="s.body" class="idp-passage" v-html="s.body"></div>
+        <div v-if="s.questions">
+          <div v-for="q in s.questions" :key="q.id" class="idp-question">
+            <div class="idp-question__number">Question {{ q.number }}</div>
+            <div v-if="q.prompt" class="idp-question__text" v-html="q.prompt"></div>
+            <div class="idp-answer">
+              <div class="idp-answer__label">Correct Answer</div>
+              <div class="idp-answer__content">
+                <span class="idp-answer__correct">{{ renderAnswer(q.answer) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
-
     <div v-else class="empty">Loading answers…</div>
   </div>
 </template>
@@ -38,14 +46,3 @@ function renderAnswer(ans: any) {
   return JSON.stringify(ans)
 }
 </script>
-
-<style scoped>
-.answers-head { margin: 8px 0 18px; }
-.answers-head .back { color: #6B7280; display: inline-block; margin-bottom: 8px; text-decoration: none; }
-.answers-page h1 { margin: 6px 0 6px; }
-.section { margin: 18px 0; padding: 12px 0; border-top: 1px solid #F3F4F6; }
-.qa-list { list-style: none; padding: 0; margin: 8px 0 0; }
-.qa-list li { padding: 10px 0; border-bottom: 1px dashed #F3F4F6; }
-.q-head { margin-bottom: 6px; }
-.q-answer { color: #111827; }
-</style>
