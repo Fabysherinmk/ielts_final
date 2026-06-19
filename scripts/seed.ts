@@ -13,6 +13,8 @@ import { resolve, dirname } from 'node:path'
 import bcrypt from 'bcryptjs'
 import { cambridge17ListeningTest1 } from './data/cambridge17ListeningTest1.ts'
 import { cambridgeStyleReadingTest2 } from './data/cambridgeStyleReadingTest2.ts'
+import { listeningTest2 } from './data/listeningTest2.ts'
+import { listeningTest3 } from './data/listeningTest3.ts'
 
 const dbPath = resolve(process.cwd(), process.env.DB_PATH || './data/ielts.sqlite')
 if (!existsSync(dirname(dbPath))) mkdirSync(dirname(dbPath), { recursive: true })
@@ -112,6 +114,44 @@ db.prepare(`DELETE FROM tests WHERE title LIKE 'Cambridge-style%' OR title = ?`)
 
 // Licensed Cambridge IELTS 17 content supplied by the trainer/user.
 seedListeningSet(cambridge17ListeningTest1)
+
+// Seed additional Cambridge-style listening mock tests (Tests 2 & 3) using TTS audio
+function seedTtsListeningTest(source: typeof listeningTest2) {
+  const testId = createTest(source.title, source.skill, source.description, source.duration_min, true)
+  source.sections.forEach((section: any, sectionIndex: number) => {
+    const sectionId = createSection(
+      testId,
+      sectionIndex,
+      section.title,
+      section.instructions,
+      section.body,
+      section.audio_path,
+      undefined,
+      {
+        ...(section.extra ?? {}),
+        tts_script: section.tts_script ?? null,
+        modes: source.extra.modes,
+        test_mode_audio: source.extra.test_mode_audio,
+        practice_mode_audio: source.extra.practice_mode_audio
+      }
+    )
+    section.questions.forEach((question: any, questionIndex: number) => {
+      createQ(
+        sectionId,
+        questionIndex,
+        question.number,
+        question.type,
+        question.prompt,
+        question.data ?? null,
+        question.answer,
+        question.points ?? 1
+      )
+    })
+  })
+}
+
+seedTtsListeningTest(listeningTest2)
+seedTtsListeningTest(listeningTest3)
 
 // ---------------------------------------------------------------------------
 // 1) READING TEST (3 passages, 40 questions)
@@ -338,6 +378,18 @@ sc.slice(0, 0).forEach((s, i) =>
 
 seedStructuredTest(cambridgeStyleReadingTest2)
 
+seedStructuredTest({
+  ...cambridgeStyleReadingTest2,
+  title: 'Cambridge-style IELTS Academic Reading — Mock Test 3',
+  description: 'Three academic passages with Cambridge-style question types including completion, TFNG, matching and summary tasks.'
+})
+
+seedStructuredTest({
+  ...cambridgeStyleReadingTest2,
+  title: 'Cambridge-style IELTS Academic Reading — Mock Test 4',
+  description: 'Full-length academic reading mock with mixed question types across three passages.'
+})
+
 // ---------------------------------------------------------------------------
 // 2) LISTENING TEST (4 parts, 40 questions)
 // ---------------------------------------------------------------------------
@@ -346,7 +398,7 @@ const listeningId = createTest(
   'listening',
   'Four listening parts modelled on Cambridge IELTS 20 Test 4. 40 questions. ~30 minutes of audio + 10 min transfer.',
   40,
-  false
+  true
 )
 
 // --- Part 1: Form completion (accommodation enquiry)
@@ -479,83 +531,196 @@ l4notes.forEach((q, i) =>
   createQ(l4, i, q.n, 'listening_note_completion', q.p, { word_limit: 2 }, { answer: q.a }))
 
 // ---------------------------------------------------------------------------
-// 3) WRITING TEST (2 tasks)
+// 3) WRITING TESTS (4 tests)
 // ---------------------------------------------------------------------------
-const writingId = createTest(
-  'Cambridge-style IELTS Academic Writing — Mock Test 1',
-  'writing',
-  'Two writing tasks modelled on Cambridge IELTS 20 Test 4. Task 1 (20 min, 150+ words) + Task 2 (40 min, 250+ words).',
-  60
-)
-const w1 = createSection(writingId, 0,
-  'Writing Task 1',
-  'You should spend about 20 minutes on this task. Write at least 150 words.',
-  `<p>The chart below shows the percentage of households in four different income groups that owned selected consumer durables (washing machine, microwave, smartphone, tumble dryer) in a European country in 2005 and 2023.</p>
+const writingTests = [
+  {
+    title: 'Cambridge-style IELTS Academic Writing — Mock Test 1',
+    description: 'Two writing tasks modelled on Cambridge IELTS 20 Test 4. Task 1 (20 min, 150+ words) + Task 2 (40 min, 250+ words).',
+    task1: `<p>The chart below shows the percentage of households in four different income groups that owned selected consumer durables (washing machine, microwave, smartphone, tumble dryer) in a European country in 2005 and 2023.</p>
   <p><strong>Summarise the information by selecting and reporting the main features, and make comparisons where relevant.</strong></p>`,
-  undefined, undefined, { min_words: 150, suggested_min: 20 })
-createQ(w1, 0, 1, 'writing_task_1', 'Write your response to Task 1 here.', { min_words: 150 }, null, 0)
-
-const w2 = createSection(writingId, 1,
-  'Writing Task 2',
-  'You should spend about 40 minutes on this task. Write at least 250 words.',
-  `<p>Some people believe that in order to combat climate change, governments should focus primarily on regulating large industries, while others argue that individual behaviour change is equally important.</p>
+    task2: `<p>Some people believe that in order to combat climate change, governments should focus primarily on regulating large industries, while others argue that individual behaviour change is equally important.</p>
   <p><strong>Discuss both views and give your own opinion.</strong></p>
-  <p>Give reasons for your answer and include any relevant examples from your own knowledge or experience.</p>`,
-  undefined, undefined, { min_words: 250, suggested_min: 40 })
-createQ(w2, 0, 2, 'writing_task_2', 'Write your response to Task 2 here.', { min_words: 250 }, null, 0)
-
-// ---------------------------------------------------------------------------
-// 4) SPEAKING TEST (3 parts)
-// ---------------------------------------------------------------------------
-const speakingId = createTest(
-  'Cambridge-style IELTS Speaking — Mock Test 1',
-  'speaking',
-  'Three speaking parts modelled on Cambridge IELTS 20 Test 4. 11–14 minutes.',
-  14
-)
-
-const s1 = createSection(speakingId, 0,
-  'Part 1: Introduction and interview',
-  'The examiner asks you general questions about yourself and a range of familiar topics (4-5 minutes). Record your answers.',
-  '<p>In this part the examiner will ask questions about your home, work or studies, and other familiar topics. Answer each question in 1–2 sentences.</p>')
-const s1qs = [
-  'Let\'s talk about your hometown. Where is your hometown and what is it known for?',
-  'Do you prefer living in a city or in the countryside? Why?',
-  'How often do you travel on public transport?',
-  'What kind of weather do you enjoy most? Why?',
-  'Do you think you will live in the same place in ten years\' time?'
+  <p>Give reasons for your answer and include any relevant examples from your own knowledge or experience.</p>`
+  },
+  {
+    title: 'Cambridge-style IELTS Academic Writing — Mock Test 2',
+    description: 'Two writing tasks with line graph Task 1 and education topic Task 2.',
+    task1: `<p>The line graph shows the number of international students studying in three different countries from 2000 to 2020.</p>
+  <p><strong>Summarise the information by selecting and reporting the main features, and make comparisons where relevant.</strong></p>`,
+    task2: `<p>Some people think that children should begin learning a foreign language at primary school rather than secondary school.</p>
+  <p><strong>Do the advantages of this outweigh the disadvantages?</strong></p>`
+  },
+  {
+    title: 'Cambridge-style IELTS Academic Writing — Mock Test 3',
+    description: 'Two writing tasks with bar chart Task 1 and technology topic Task 2.',
+    task1: `<p>The bar chart below shows the average monthly expenditure on different categories in three major cities in 2022.</p>
+  <p><strong>Summarise the information by selecting and reporting the main features, and make comparisons where relevant.</strong></p>`,
+    task2: `<p>Nowadays the way many people interact with each other has changed because of technology.</p>
+  <p><strong>In what ways has technology affected the types of relationships people make? Has this become a positive or negative development?</strong></p>`
+  },
+  {
+    title: 'Cambridge-style IELTS Academic Writing — Mock Test 4',
+    description: 'Two writing tasks with pie chart Task 1 and environment topic Task 2.',
+    task1: `<p>The pie charts show the proportion of different types of energy used in two different countries in 2010 and 2020.</p>
+  <p><strong>Summarise the information by selecting and reporting the main features, and make comparisons where relevant.</strong></p>`,
+    task2: `<p>Many people believe that social networking sites (such as Facebook) have had a huge negative impact on both individuals and society.</p>
+  <p><strong>To what extent do you agree?</strong></p>`
+  }
 ]
-s1qs.forEach((p, i) => createQ(s1, i, i+1, 'speaking_part_1', p, null, null, 0))
 
-const s2 = createSection(speakingId, 1,
-  'Part 2: Individual long turn',
-  'You will have 1 minute to prepare, then speak for 1–2 minutes on the cue card topic.',
-  '',
-  undefined, undefined,
-  { cue_card: `<p>Describe a skill that you would like to learn but have not yet had the chance to.</p>
+writingTests.forEach((testData, testIndex) => {
+  const writingId = createTest(testData.title, 'writing', testData.description, 60)
+  const w1 = createSection(writingId, 0,
+    'Writing Task 1',
+    'You should spend about 20 minutes on this task. Write at least 150 words.',
+    testData.task1,
+    undefined, undefined, { min_words: 150, suggested_min: 20 })
+  createQ(w1, 0, 1, 'writing_task_1', 'Write your response to Task 1 here.', { min_words: 150 }, null, 0)
+
+  const w2 = createSection(writingId, 1,
+    'Writing Task 2',
+    'You should spend about 40 minutes on this task. Write at least 250 words.',
+    testData.task2,
+    undefined, undefined, { min_words: 250, suggested_min: 40 })
+  createQ(w2, 0, 2, 'writing_task_2', 'Write your response to Task 2 here.', { min_words: 250 }, null, 0)
+})
+
+// ---------------------------------------------------------------------------
+// 4) SPEAKING TESTS (4 tests)
+// ---------------------------------------------------------------------------
+const speakingTests = [
+  {
+    title: 'Cambridge-style IELTS Speaking — Mock Test 1',
+    description: 'Three speaking parts modelled on Cambridge IELTS 20 Test 4. 11–14 minutes.',
+    part1: [
+      'Let\'s talk about your hometown. Where is your hometown and what is it known for?',
+      'Do you prefer living in a city or in the countryside? Why?',
+      'How often do you travel on public transport?',
+      'What kind of weather do you enjoy most? Why?',
+      'Do you think you will live in the same place in ten years\' time?'
+    ],
+    part2: `<p>Describe a skill that you would like to learn but have not yet had the chance to.</p>
 <p>You should say:</p>
 <ul>
   <li>what the skill is</li>
   <li>how you would learn it</li>
   <li>how long it might take to become good at it</li>
 </ul>
-<p>and explain why you would like to learn this skill.</p>` })
-createQ(s2, 0, 1, 'speaking_part_2',
-  'Record your long-turn response (1–2 minutes).',
-  { cue_card: 'See section' }, null, 0)
-
-const s3 = createSection(speakingId, 2,
-  'Part 3: Two-way discussion',
-  'Broader discussion questions connected to the Part 2 topic (4-5 minutes).',
-  '')
-const s3qs = [
-  'In your country, what kinds of skills are most valued by employers today?',
-  'Do you think schools focus enough on practical life skills? Why or why not?',
-  'Is it more important to be good at many things or to specialise in one area?',
-  'How has technology changed the way people learn new skills?',
-  'Do you think older people find it harder than younger people to learn new skills?'
+<p>and explain why you would like to learn this skill.</p>`,
+    part3: [
+      'In your country, what kinds of skills are most valued by employers today?',
+      'Do you think schools focus enough on practical life skills? Why or why not?',
+      'Is it more important to be good at many things or to specialise in one area?',
+      'How has technology changed the way people learn new skills?',
+      'Do you think older people find it harder than younger people to learn new skills?'
+    ]
+  },
+  {
+    title: 'Cambridge-style IELTS Speaking — Mock Test 2',
+    description: 'Speaking test about hobbies and leisure activities.',
+    part1: [
+      'Let\'s talk about your hobbies. What do you like to do in your free time?',
+      'Have your hobbies changed since you were a child?',
+      'Do you prefer doing hobbies alone or with others?',
+      'What new hobby would you like to try?',
+      'How important are hobbies for people\'s well-being?'
+    ],
+    part2: `<p>Describe a hobby or activity you enjoy doing in your free time.</p>
+<p>You should say:</p>
+<ul>
+  <li>what the hobby/activity is</li>
+  <li>where you do it</li>
+  <li>who you do it with</li>
+</ul>
+<p>and explain why you enjoy it.</p>`,
+    part3: [
+      'What are the most popular free-time activities in your country?',
+      'Do you think people have less free time now than in the past?',
+      'What are the advantages of having outdoor activities compared to indoor hobbies?',
+      'How has technology affected the way people spend their free time?',
+      'Do you think schools should encourage students to have more hobbies?'
+    ]
+  },
+  {
+    title: 'Cambridge-style IELTS Speaking — Mock Test 3',
+    description: 'Speaking test about food and cooking.',
+    part1: [
+      'Let\'s talk about food. What is your favourite food?',
+      'Do you like cooking? Why or why not?',
+      'What kind of food do you eat for typical in your country?',
+      'Have your eating changed in recent years?',
+      'Do you prefer eating at home or in restaurants?'
+    ],
+    part2: `<p>Describe a meal you had that you really enjoyed.</p>
+<p>You should say:</p>
+<ul>
+  <li>what meal it was</li>
+  <li>where you had it</li>
+  <li>who you were with</li>
+</ul>
+<p>and explain why you enjoyed it so much.</p>`,
+    part3: [
+      'What are the advantages of home-cooked food compared to restaurant food?',
+      'Do you think cooking is important for people to learn how to cook?',
+      'How has food in your country changed in the last few decades?',
+      'What are the environmental impacts of modern food production?',
+      'Do you think will change even more in the future?'
+    ]
+  },
+  {
+    title: 'Cambridge-style IELTS Speaking — Mock Test 4',
+    description: 'Speaking test about travel and tourism.',
+    part1: [
+      'Let\'s talk about travel. Do you like travelling?',
+      'What is your favourite way to travel?',
+      'Have you ever travelled abroad?',
+      'What do you like to do when you visit a new place?',
+      'Do you prefer travelling in your own country or abroad?'
+    ],
+    part2: `<p>Describe a place you have visited that you really enjoyed.</p>
+<p>You should say:</p>
+<ul>
+  <li>where the place is</li>
+  <li>when you went there</li>
+  <li>what you did there</li>
+</ul>
+<p>and explain why you enjoyed visiting this place.</p>`,
+    part3: [
+      'What are the benefits of travelling to other countries?',
+      'Do you think tourism has positive or negative effects on local communities?',
+      'How has travel changed in the last 50 years?',
+      'What are the advantages and disadvantages of mass tourism?',
+      'Do you think people should be encouraged to travel more?'
+    ]
+  }
 ]
-s3qs.forEach((p, i) => createQ(s3, i, i+1, 'speaking_part_3', p, null, null, 0))
+
+speakingTests.forEach((testData) => {
+  const speakingId = createTest(testData.title, 'speaking', testData.description, 14)
+  
+  const s1 = createSection(speakingId, 0,
+    'Part 1: Introduction and interview',
+    'The examiner asks you general questions about yourself and a range of familiar topics (4-5 minutes). Record your answers.',
+    '<p>In this part the examiner will ask questions about your home, work or studies, and other familiar topics. Answer each question in 1–2 sentences.</p>')
+  testData.part1.forEach((p, i) => createQ(s1, i, i+1, 'speaking_part_1', p, null, null, 0))
+
+  const s2 = createSection(speakingId, 1,
+    'Part 2: Individual long turn',
+    'You will have 1 minute to prepare, then speak for 1–2 minutes on the cue card topic.',
+    '',
+    undefined, undefined,
+    { cue_card: testData.part2 })
+  createQ(s2, 0, 1, 'speaking_part_2',
+    'Record your long-turn response (1–2 minutes).',
+    { cue_card: 'See section' }, null, 0)
+
+  const s3 = createSection(speakingId, 2,
+    'Part 3: Two-way discussion',
+    'Broader discussion questions connected to the Part 2 topic (4-5 minutes).',
+    '')
+  testData.part3.forEach((p, i) => createQ(s3, i, i+1, 'speaking_part_3', p, null, null, 0))
+})
 
 // ---------------------------------------------------------------------------
 // Default admin user — idempotent upsert so `npm run seed` is safe to rerun.

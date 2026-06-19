@@ -1,5 +1,5 @@
 <template>
-  <div v-if="test && !missingAudio" class="inspera-shell" :class="[`inspera-shell--${mode}`, `text-size-${textSize}`, { 'high-contrast': highContrast }]">
+  <div v-if="test" class="inspera-shell" :class="[`inspera-shell--${mode}`, `text-size-${textSize}`, { 'high-contrast': highContrast }]">
     <header class="inspera-topbar">
       <div class="inspera-logo">IELTS</div>
       <div class="inspera-candidate">
@@ -30,18 +30,44 @@
           <span v-if="mode === 'test'">{{ timeDisplay }}</span>
         </div>
 
-        <div v-if="mode === 'practice' && currentSection?.audio_path" class="practice-audio">
-          <audio :src="currentSection.audio_path" controls preload="metadata"></audio>
+        <!-- Practice mode: TTS player or real audio -->
+        <div v-if="mode === 'practice'" class="practice-audio-wrap">
+          <div v-if="hasTts" class="tts-player">
+            <div class="tts-player__label">
+              <Icon name="volume-2" :size="15" /> AI Narrator — practice mode
+            </div>
+            <div class="tts-player__controls">
+              <button class="tts-btn tts-btn--play" @click="ttsToggle" :title="ttsPlaying ? 'Pause' : 'Play'">
+                <Icon :name="ttsPlaying ? 'pause-circle' : 'play-circle'" :size="32" />
+              </button>
+              <button class="tts-btn" @click="ttsStop" title="Stop & reset">
+                <Icon name="square" :size="22" />
+              </button>
+              <button class="tts-btn" @click="ttsReplay" title="Replay from start">
+                <Icon name="rotate-ccw" :size="20" />
+              </button>
+            </div>
+            <p class="tts-player__hint">You can replay the audio as many times as needed in practice mode.</p>
+          </div>
+          <div v-else-if="currentSection?.audio_path">
+            <audio :src="currentSection.audio_path" controls preload="metadata"></audio>
+          </div>
+          <div v-else class="banner warn">
+            <Icon name="alert-triangle" :size="18" />
+            <span>No audio attached to this part.</span>
+          </div>
         </div>
 
-        <div v-else-if="mode === 'test' && currentSection?.audio_path" class="test-audio-status">
-          <Icon :name="audioPlaying ? 'volume-2' : currentSectionStarted ? 'volume-x' : 'headphones'" :size="18" />
-          <span>{{ audioStatusText }}</span>
-        </div>
-
-        <div v-else class="banner warn" style="margin-top:12px;">
-          <Icon name="alert-triangle" :size="18" />
-          <span>No audio is attached to this part yet.</span>
+        <!-- Test mode: TTS status or MP3 status -->
+        <div v-else-if="mode === 'test'">
+          <div v-if="hasTts || currentSection?.audio_path" class="test-audio-status">
+            <Icon :name="audioPlaying ? 'volume-2' : currentSectionStarted ? 'volume-x' : 'headphones'" :size="18" />
+            <span>{{ audioStatusText }}</span>
+          </div>
+          <div v-else class="banner warn" style="margin-top:12px;">
+            <Icon name="alert-triangle" :size="18" />
+            <span>No audio is attached to this part yet.</span>
+          </div>
         </div>
 
         <img v-if="currentSection?.image_path" :src="currentSection.image_path" alt="Question diagram" class="part-image" />
@@ -91,8 +117,9 @@
       </div>
     </main>
 
+    <!-- Real MP3 audio element (only for non-TTS tests in test mode) -->
     <audio
-      v-if="mode === 'test' && currentSection?.audio_path"
+      v-if="mode === 'test' && currentSection?.audio_path && !hasTts"
       ref="testAudio"
       :key="currentSection.id"
       :src="currentSection.audio_path"
@@ -102,6 +129,7 @@
       @ended="markAudioEnded"
     />
 
+    <!-- Audio start overlay (test mode, not yet started) -->
     <div v-if="showAudioOverlay" class="audio-start-overlay" role="dialog" aria-modal="true">
       <div class="audio-start-dialog">
         <Icon name="headphones" :size="86" />
@@ -111,6 +139,7 @@
       </div>
     </div>
 
+    <!-- Options panel -->
     <div v-if="optionsOpen" class="options-page">
       <header>
         <h1>Options</h1>
@@ -167,10 +196,10 @@
       </nav>
     </footer>
   </div>
+
+  <!-- Fallback / loading -->
   <div v-else class="container">
-    <p v-if="redirectingToAudioReadyTest">Opening the listening test with attached audio...</p>
-    <p v-else-if="missingAudio">This listening test is missing audio. Use the audio-ready Cambridge listening test from the test library.</p>
-    <p v-else-if="testError">This listening test is not available.</p>
+    <p v-if="testError">This listening test is not available.</p>
     <p v-else>Loading test...</p>
     <NuxtLink to="/tests" class="btn sm" style="margin-top:12px;">Back to tests</NuxtLink>
   </div>
@@ -191,7 +220,6 @@ const activeQuestionNumber = ref<number | null>(null)
 const reviewOpen = ref(false)
 const optionsOpen = ref(false)
 const highContrast = ref(false)
-const redirectingToAudioReadyTest = ref(false)
 type TextSize = 'small' | 'medium' | 'large'
 const textSize = ref<TextSize>('medium')
 const audioPlaying = ref(false)
@@ -200,23 +228,36 @@ const audioStarted = reactive<Record<number, boolean>>({})
 const testAudio = ref<HTMLAudioElement | null>(null)
 let timer: ReturnType<typeof setInterval> | null = null
 
+// ── TTS state ──
+const ttsPlaying = ref(false)
+let ttsUtterance: SpeechSynthesisUtterance | null = null
+
 const mode = computed(() => normalizeListeningMode(route.query.mode))
 const currentSection = computed(() => test.value?.sections?.[currentSectionIndex.value])
-const missingAudio = computed(() => !!test.value && hasMissingListeningAudio(test.value))
+
+// True when this section uses TTS (audio_path is a placeholder for TTS)
+const hasTts = computed(() => {
+  const path: string = currentSection.value?.audio_path || ''
+  const script: string = currentSection.value?.extra?.tts_script || ''
+  return !!script || path.includes('mock-test-')
+})
+
+const ttsScript = computed(() => currentSection.value?.extra?.tts_script || '')
+
 const textSizeChoices: Array<{ value: TextSize; mark: string; label: string }> = [
   { value: 'small', mark: 'A-', label: 'Lower' },
   { value: 'medium', mark: 'A', label: 'Middle' },
   { value: 'large', mark: 'A+', label: 'Higher' }
 ]
-const textSizeLabel = computed(() => textSizeChoices.find(choice => choice.value === textSize.value)?.label || 'Middle')
+const textSizeLabel = computed(() => textSizeChoices.find(c => c.value === textSize.value)?.label || 'Middle')
 const currentSectionStarted = computed(() => currentSection.value ? !!audioStarted[currentSection.value.id] : false)
 const showAudioOverlay = computed(() =>
   mode.value === 'test' &&
-  !!currentSection.value?.audio_path &&
+  (hasTts.value || !!currentSection.value?.audio_path) &&
   !currentSectionStarted.value
 )
 const audioStatusText = computed(() => {
-  if (audioPlaying.value) return 'Audio is playing. Pause, rewind, and replay are disabled in test mode.'
+  if (audioPlaying.value || ttsPlaying.value) return 'Audio is playing. Pause, rewind, and replay are disabled in test mode.'
   if (currentSection.value && audioEnded[currentSection.value.id]) return 'Audio ended for this part.'
   if (currentSectionStarted.value) return 'Audio has already been started for this part.'
   return 'Press Play when you are ready. The audio can be played once only.'
@@ -227,7 +268,7 @@ const sectionPrompt = computed(() =>
 )
 
 const duration = computed(() => (test.value?.duration_min || 40) * 60)
-const remaining = ref(duration.value)
+const remaining = ref(0)
 const timeDisplay = computed(() => {
   if (!usesExamTiming(mode.value)) return 'Practice'
   const s = Math.max(0, remaining.value)
@@ -251,53 +292,92 @@ onMounted(() => {
       }
     }, 1000)
   }
-  redirectIfNoAudio()
-})
-onBeforeUnmount(() => {
-  if (timer) clearInterval(timer)
 })
 
-watch([test, testError], () => redirectIfNoAudio())
+onBeforeUnmount(() => {
+  if (timer) clearInterval(timer)
+  ttsStopAll()
+})
 
 watch(currentSectionIndex, () => {
   stopTestAudio()
+  ttsStopAll()
+  audioPlaying.value = false
+  ttsPlaying.value = false
   activeQuestionNumber.value = currentSection.value?.questions?.[0]?.number ?? null
 })
 
+// ── TTS helpers ──
+function ttsStopAll() {
+  if (typeof window !== 'undefined' && window.speechSynthesis) {
+    window.speechSynthesis.cancel()
+  }
+  ttsPlaying.value = false
+  ttsUtterance = null
+}
+
+function ttsSpeak(script: string, onEnd?: () => void) {
+  if (!script || typeof window === 'undefined' || !window.speechSynthesis) return
+  ttsStopAll()
+  const utter = new SpeechSynthesisUtterance(script)
+  utter.rate = 0.92
+  utter.pitch = 1.0
+  utter.lang = 'en-GB'
+  utter.onstart = () => { ttsPlaying.value = true; audioPlaying.value = true }
+  utter.onend = () => {
+    ttsPlaying.value = false
+    audioPlaying.value = false
+    if (currentSection.value) audioEnded[currentSection.value.id] = true
+    onEnd?.()
+  }
+  utter.onerror = () => { ttsPlaying.value = false; audioPlaying.value = false }
+  ttsUtterance = utter
+  window.speechSynthesis.speak(utter)
+}
+
+function ttsToggle() {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return
+  if (ttsPlaying.value) {
+    window.speechSynthesis.pause()
+    ttsPlaying.value = false
+    audioPlaying.value = false
+  } else if (window.speechSynthesis.paused) {
+    window.speechSynthesis.resume()
+    ttsPlaying.value = true
+    audioPlaying.value = true
+  } else {
+    ttsSpeak(ttsScript.value)
+  }
+}
+
+function ttsStop() {
+  ttsStopAll()
+}
+
+function ttsReplay() {
+  ttsStopAll()
+  ttsSpeak(ttsScript.value)
+}
+
+// ── Audio helpers ──
 function isAnswered(qid: number) {
   const value = responses[qid]
   return Array.isArray(value) ? value.length > 0 : !!value
 }
-function hasMissingListeningAudio(candidate: any) {
-  if (candidate?.skill !== 'listening') return false
-  const sections = candidate.sections || []
-  return !sections.length || sections.some((section: any) => !String(section.audio_path || '').trim())
-}
-async function redirectIfNoAudio() {
-  if (typeof window === 'undefined' || redirectingToAudioReadyTest.value) return
-  if (!missingAudio.value && !testError.value) return
-  redirectingToAudioReadyTest.value = true
-  try {
-    const tests: any[] = await $fetch('/api/tests')
-    const fallback = tests.find(t => t.skill === 'listening' && Number(t.id) !== testId)
-      || tests.find(t => t.skill === 'listening')
-    if (fallback) {
-      await navigateTo({ path: `/tests/listening/${fallback.id}`, query: { mode: mode.value } }, { replace: true })
-      return
-    }
-  } catch {}
-  redirectingToAudioReadyTest.value = false
-}
+
 function setResponse(qid: number, v: any) { responses[qid] = v }
+
 function setTextSize(size: TextSize) {
   textSize.value = size
   if (typeof window !== 'undefined') window.localStorage.setItem('ielts-listening-text-size', size)
 }
+
 function goTo(si: number) {
   if (!test.value?.sections?.[si]) return
   reviewOpen.value = false
   currentSectionIndex.value = si
 }
+
 function stopTestAudio() {
   if (testAudio.value) {
     testAudio.value.pause()
@@ -305,24 +385,37 @@ function stopTestAudio() {
   }
   audioPlaying.value = false
 }
+
 async function startTestAudio() {
-  if (!currentSection.value?.audio_path) return
+  if (!currentSection.value) return
   audioStarted[currentSection.value.id] = true
-  await nextTick()
-  if (!testAudio.value) return
-  testAudio.value.controls = false
-  testAudio.value.currentTime = 0
-  await testAudio.value.play()
+
+  if (hasTts.value) {
+    // TTS mode
+    ttsSpeak(ttsScript.value, () => {
+      if (currentSection.value) audioEnded[currentSection.value.id] = true
+    })
+  } else {
+    // Real MP3 mode
+    await nextTick()
+    if (!testAudio.value) return
+    testAudio.value.controls = false
+    testAudio.value.currentTime = 0
+    await testAudio.value.play()
+  }
 }
+
 function markAudioEnded() {
   audioPlaying.value = false
   if (currentSection.value) audioEnded[currentSection.value.id] = true
 }
+
 function sectionQuestionRange(s: any) {
   if (!s?.questions?.length) return ''
   const nums = s.questions.map((q: any) => q.number).filter((n: any) => n != null)
   return nums.length ? `${Math.min(...nums)}-${Math.max(...nums)}` : ''
 }
+
 function groupedQuestions(s: any) {
   if (!s?.questions) return []
   const groups: any[] = []
@@ -335,12 +428,14 @@ function groupedQuestions(s: any) {
   }
   return groups
 }
+
 function answeredInSection(s: any) {
   return (s?.questions || []).filter((q: any) => isAnswered(q.id)).length
 }
+
 function typeLabel(t: string) {
   const map: Record<string,string> = {
-    listening_form_completion: 'Complete the notes below.',
+    listening_form_completion: 'Complete the form below.',
     listening_note_completion: 'Complete the notes below.',
     listening_table_completion: 'Complete the table.',
     listening_flowchart_completion: 'Complete the flow-chart.',
@@ -358,6 +453,7 @@ function typeLabel(t: string) {
 const modal = useModal()
 async function submit() {
   stopTestAudio()
+  ttsStopAll()
   const answered = Object.keys(responses).filter((id) => isAnswered(Number(id))).length
   const totalQs = (test.value?.sections || []).reduce((n: number, s: any) => n + (s.questions?.length || 0), 0)
   const ok = await modal.confirm({
@@ -374,3 +470,58 @@ async function submit() {
   router.push(`/results/${res.attempt_id}`)
 }
 </script>
+
+<style scoped>
+/* TTS player styles */
+.practice-audio-wrap { margin-top: 14px; }
+
+.tts-player {
+  background: linear-gradient(135deg, #1a1f3a, #2d3561);
+  border-radius: 14px;
+  padding: 18px 20px;
+  color: #fff;
+}
+.tts-player__label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #93c5fd;
+  margin-bottom: 14px;
+}
+.tts-player__controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.tts-btn {
+  background: rgba(255,255,255,0.12);
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.15s, transform 0.15s;
+}
+.tts-btn:hover { background: rgba(255,255,255,0.24); transform: scale(1.07); }
+.tts-btn--play {
+  width: 56px;
+  height: 56px;
+  background: #e11b2b;
+}
+.tts-btn--play:hover { background: #b91c1c; }
+.tts-player__hint {
+  font-size: 11px;
+  color: rgba(255,255,255,0.55);
+  margin: 0;
+  line-height: 1.5;
+}
+</style>
