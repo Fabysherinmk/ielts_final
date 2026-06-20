@@ -97,48 +97,25 @@ export const cambridgeStyleReadingTest2 = {
           { id: 'vi', text: 'Play as a teaching tool' },
           { id: 'vii', text: 'Spatial gains from building' }
         ] }, answer: { answer: 'iv' } },
-        { number: 20, type: 'reading_matching_features', prompt: 'found a link between block building and later mental rotation performance', data: { options: [
-          { id: 'A', text: 'Nora Kim' },
-          { id: 'B', text: 'Peter Valdes' },
-          { id: 'C', text: 'Lena Ortiz' },
-          { id: 'D', text: 'Samuel Greer' }
-        ] }, answer: { answer: 'A' } },
-        { number: 21, type: 'reading_matching_features', prompt: 'argues that pretend play may reflect existing language and social skill', data: { options: [
-          { id: 'A', text: 'Nora Kim' },
-          { id: 'B', text: 'Peter Valdes' },
-          { id: 'C', text: 'Lena Ortiz' },
-          { id: 'D', text: 'Samuel Greer' }
-        ] }, answer: { answer: 'B' } },
-        { number: 22, type: 'reading_matching_features', prompt: 'observed household tasks being turned into playful contests', data: { options: [
-          { id: 'A', text: 'Nora Kim' },
-          { id: 'B', text: 'Peter Valdes' },
-          { id: 'C', text: 'Lena Ortiz' },
-          { id: 'D', text: 'Samuel Greer' }
-        ] }, answer: { answer: 'C' } },
-        { number: 23, type: 'reading_matching_features', prompt: 'suggests judging digital play by the thinking it requires', data: { options: [
-          { id: 'A', text: 'Nora Kim' },
-          { id: 'B', text: 'Peter Valdes' },
-          { id: 'C', text: 'Lena Ortiz' },
-          { id: 'D', text: 'Samuel Greer' }
-        ] }, answer: { answer: 'D' } },
-        { number: 24, type: 'reading_matching_sentence_endings', prompt: 'Educators in Scandinavian preschools distinguish danger from', data: { options: [
-          { id: 'A', text: 'risk that children can assess.' },
-          { id: 'B', text: 'a mental image of an object.' },
-          { id: 'C', text: 'rapid rewards for tapping.' },
-          { id: 'D', text: 'formal instruction in schools.' }
-        ] }, answer: { answer: 'A' } },
-        { number: 25, type: 'reading_matching_sentence_endings', prompt: 'Kim believes block play helps because children translate between a plan and', data: { options: [
-          { id: 'A', text: 'risk that children can assess.' },
-          { id: 'B', text: 'a mental image of an object.' },
-          { id: 'C', text: 'rapid rewards for tapping.' },
-          { id: 'D', text: 'formal instruction in schools.' }
-        ] }, answer: { answer: 'B' } },
-        { number: 26, type: 'reading_matching_sentence_endings', prompt: 'Some apps marketed as educational mainly provide', data: { options: [
-          { id: 'A', text: 'risk that children can assess.' },
-          { id: 'B', text: 'a mental image of an object.' },
-          { id: 'C', text: 'rapid rewards for tapping.' },
-          { id: 'D', text: 'formal instruction in schools.' }
-        ] }, answer: { answer: 'C' } }
+        { number: 20, type: 'reading_mcq_multi', prompt: 'Which TWO statements describe research findings about constructive play mentioned in the passage?', data: { choose: 2, options: [
+          'It helps children develop better balance and coordination.',
+          'It is linked to improved mental rotation performance two years later.',
+          'Its benefits disappear when researchers control for vocabulary.',
+          'It helps children translate between a plan and a mental image.',
+          'It has the same effect regardless of cultural background.'
+        ] }, answer: { answer: ['B', 'D'] } },
+        { number: 21, type: 'reading_mcq_multi', prompt: 'Which TWO statements describe research findings about constructive play mentioned in the passage?', data: { linked_to: 20 }, answer: { answer: ['B', 'D'] } },
+        { number: 22, type: 'reading_mcq_multi', prompt: 'Which TWO points are made about digital play in the passage?', data: { choose: 2, options: [
+          'Well-designed puzzle games can develop planning and persistence.',
+          'Most educational apps offer mainly rapid rewards for simple actions.',
+          'Screen time should always be supervised by adults.',
+          'Digital play is more effective than physical play for older children.',
+          'Parents are advised to ban apps that lack clear learning goals.'
+        ] }, answer: { answer: ['A', 'B'] } },
+        { number: 23, type: 'reading_mcq_multi', prompt: 'Which TWO points are made about digital play in the passage?', data: { linked_to: 22 }, answer: { answer: ['A', 'B'] } },
+        { number: 24, type: 'reading_summary_completion', prompt: '', data: { word_limit: 1, summary_title: 'Play, learning and child development', summary_body: 'Research shows that different forms of play support distinct aspects of children\'s development. In Scandinavian preschools, educators draw a distinction between danger and [24], encouraging children to take manageable risks as part of learning. Studies led by Professor Kim found that regular block-building improved children\'s [25] thinking by helping them translate between plans and physical objects. Meanwhile, Dr Greer advises parents to judge digital play by whether it requires genuine thinking, warning that many apps mainly offer [26] for tapping the screen.' }, answer: { answer: 'risk' } },
+        { number: 25, type: 'reading_summary_completion', prompt: '', data: { word_limit: 1 }, answer: { answer: 'spatial' } },
+        { number: 26, type: 'reading_summary_completion', prompt: '', data: { word_limit: 1 }, answer: { answer: 'rewards' } }
       ]
     },
     {

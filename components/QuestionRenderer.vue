@@ -5,8 +5,8 @@
 -->
 <template>
   <div class="question">
-    <span class="qnum">{{ question.number ?? question.order_index + 1 }}</span>
-    <span class="q-prompt" v-html="question.prompt"></span>
+    <span class="qnum">{{ displayNumber ?? (question.number ?? question.order_index + 1) }}</span>
+    <span v-if="!question.data?.linked_to" class="q-prompt" v-html="question.prompt"></span>
 
     <!-- MULTIPLE CHOICE single ----------------------------------------------->
     <div v-if="type === 'mcq_single'" class="options">
@@ -24,9 +24,11 @@
 
     <div v-else-if="type === 'mcq_multi'" class="options">
       <small style="color:#555;">Choose {{ question.data?.choose ?? 2 }} answers.</small>
-      <label v-for="(opt, i) in question.data?.options || []" :key="i">
+      <label v-for="(opt, i) in question.data?.options || []" :key="i"
+             :class="{ disabled: !isMultiSelected(letter(i)) && multiAtMax }">
         <input type="checkbox" :value="letter(i)"
-               :checked="Array.isArray(modelValue) && modelValue.includes(letter(i))"
+               :checked="isMultiSelected(letter(i))"
+               :disabled="!isMultiSelected(letter(i)) && multiAtMax"
                @change="toggleMulti(letter(i), ($event.target as HTMLInputElement).checked)"/>
         <strong>{{ letter(i) }}.</strong> {{ opt }}
       </label>
@@ -131,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ question: any; modelValue?: any }>()
+const props = defineProps<{ question: any; modelValue?: any; displayNumber?: string | number }>()
 const emit = defineEmits<{ (e: 'update', v: any): void }>()
 
 const type = computed<string>(() => {
@@ -195,10 +197,18 @@ function dropChoice(e: DragEvent) {
   if (value) emit('update', value)
 }
 
+const multiMax = computed(() => props.question.data?.choose ?? 2)
+const multiSelected = computed<string[]>(() => Array.isArray(props.modelValue) ? props.modelValue : [])
+const multiAtMax = computed(() => multiSelected.value.length >= multiMax.value)
+function isMultiSelected(val: string) { return multiSelected.value.includes(val) }
+
 function toggleMulti(val: string, checked: boolean) {
-  const cur: string[] = Array.isArray(props.modelValue) ? [...props.modelValue] : []
+  const cur = [...multiSelected.value]
   const idx = cur.indexOf(val)
-  if (checked && idx < 0) cur.push(val)
+  if (checked && idx < 0) {
+    if (cur.length >= multiMax.value) return
+    cur.push(val)
+  }
   if (!checked && idx >= 0) cur.splice(idx, 1)
   emit('update', cur.sort())
 }

@@ -24,39 +24,65 @@
       <div class="reading-panel reading-passage">
         <h2>{{ currentSection?.title }}</h2>
         <p class="reading-instructions">{{ currentSection?.instructions }}</p>
-        <div v-html="currentSection?.body"></div>
+        <!-- Passage HTML is transformed to inject para drop-zones when matching headings are active -->
+        <div
+          v-html="processedPassageBody"
+          @dragover="onPassageDragOver"
+          @drop.prevent="onPassageDrop"
+          @click="onPassageClick"
+        ></div>
       </div>
 
       <div class="reading-panel reading-questions">
         <h2>Questions {{ sectionQuestionRange(currentSection) }}</h2>
         <template v-for="group in groupedQuestions(currentSection)" :key="group.type + group.from">
           <div class="qsection-title">
-            Questions {{ group.from }}-{{ group.to }}: {{ typeLabel(group.type) }}
+            Questions {{ group.from }}-{{ group.to }}: {{ groupTitle(group) }}
           </div>
 
-          <div v-if="group.type === 'reading_matching_headings'" class="instructions reading-option-list">
-            <strong>List of Headings</strong>
-            <ol style="list-style-type: upper-roman;">
-              <li v-for="h in group.items[0]?.data?.headings || []" :key="h.id">{{ h.text }}</li>
-            </ol>
-          </div>
-
-          <div v-else-if="group.items[0]?.data?.options && optionListTypes.has(group.type)" class="instructions reading-option-list">
-            <strong>{{ optionListTitle(group.type) }}</strong>
-            <ol style="list-style-type: upper-alpha;">
-              <li v-for="opt in group.items[0]?.data?.options || []" :key="opt.id || opt">
-                {{ typeof opt === 'string' ? opt : opt.text }}
-              </li>
-            </ol>
-          </div>
-
-          <QuestionRenderer
-            v-for="q in group.items"
-            :key="q.id"
-            :question="q"
-            :model-value="responses[q.id]"
-            @update="val => setResponse(q.id, val)"
+          <!-- Matching headings: draggable chip bank + paragraph drop slots -->
+          <MatchingHeadingsDragDrop
+            v-if="group.type === 'reading_matching_headings'"
+            :questions="group.items"
+            :responses="responses"
+            @update="(qid, val) => setResponse(qid, val)"
           />
+
+          <!-- Word bank sentence completion: draggable chips -->
+          <SummaryDragDropBlock
+            v-else-if="hasSummaryDragDrop(group)"
+            :questions="group.items"
+            :responses="responses"
+            @update="(qid, val) => setResponse(qid, val)"
+          />
+
+          <!-- Inline paragraph summary completion: text inputs embedded in prose -->
+          <SummaryInlineBlock
+            v-else-if="hasSummaryInline(group)"
+            :questions="group.items"
+            :responses="responses"
+            @update="(qid, val) => setResponse(qid, val)"
+          />
+
+          <!-- All other question types -->
+          <template v-else>
+            <div v-if="group.items[0]?.data?.options && optionListTypes.has(group.type)" class="instructions reading-option-list">
+              <strong>{{ optionListTitle(group.type) }}</strong>
+              <ol style="list-style-type: upper-alpha;">
+                <li v-for="opt in group.items[0]?.data?.options || []" :key="opt.id || opt">
+                  {{ typeof opt === 'string' ? opt : opt.text }}
+                </li>
+              </ol>
+            </div>
+            <QuestionRenderer
+              v-for="q in group.items.filter((q: any) => !q.data?.linked_to)"
+              :key="q.id"
+              :question="q"
+              :display-number="linkedRangeLabel(group.items, q)"
+              :model-value="responses[q.id]"
+              @update="val => setResponse(q.id, val)"
+            />
+          </template>
         </template>
       </div>
     </section>
@@ -134,6 +160,64 @@ const { data: test } = await useFetch<any>(`/api/tests/${testId}`)
 const responses = reactive<Record<number, any>>({})
 const currentSectionIndex = ref(0)
 const currentSection = computed(() => test.value?.sections?.[currentSectionIndex.value])
+
+// ----- Matching Headings: transform passage HTML to inject para drop zones -----
+
+const matchingHeadingsQuestions = computed(() => {
+  return (currentSection.value?.questions ?? []).filter((q: any) => q.type === 'reading_matching_headings')
+})
+
+const processedPassageBody = computed<string>(() => {
+  const body: string = currentSection.value?.body ?? ''
+  if (!matchingHeadingsQuestions.value.length) return body
+
+  // Build maps for fast lookup
+  const paraToQ = new Map<string, any>()
+  for (const q of matchingHeadingsQuestions.value) {
+    const m = (q.prompt as string).match(/Paragraph\s+([A-Z])/i)
+    if (m) paraToQ.set(m[1].toUpperCase(), q)
+  }
+  const headingMap = new Map<string, string>()
+  for (const h of (matchingHeadingsQuestions.value[0]?.data?.headings ?? [])) {
+    headingMap.set(h.id, h.text)
+  }
+
+  // Inject a block drop zone BEFORE each paragraph; strip the para-label from the text
+  return body.replace(/<p><span class="para-label">([A-G])<\/span>/g, (match, letter) => {
+    const q = paraToQ.get(letter.toUpperCase())
+    if (!q) return match
+    const placed: string | null = responses[q.id] ?? null
+    const zoneClass = placed ? 'phz phz--filled' : 'phz'
+    const inner = placed
+      ? `<span class="phz__qnum">${q.number}</span><span class="phz__badge">${placed}</span><span class="phz__text">${headingMap.get(placed) ?? placed}</span><button class="phz__clear" data-qid="${q.id}" title="Remove">×</button>`
+      : `<span class="phz__qnum">${q.number}</span><span class="phz__hint">Drop heading here</span>`
+    // Para-label span is intentionally omitted — the question number in the drop zone identifies the paragraph
+    return `<div class="${zoneClass}" data-qid="${q.id}">${inner}</div><p>`
+  })
+})
+
+function onPassageDragOver(e: DragEvent) {
+  if ((e.target as HTMLElement).closest?.('.phz')) e.preventDefault()
+}
+
+function onPassageDrop(e: DragEvent) {
+  const zone = (e.target as HTMLElement).closest?.('[data-qid]') as HTMLElement | null
+  if (!zone) return
+  const headingId =
+    e.dataTransfer?.getData('application/x-ielts-heading') ||
+    e.dataTransfer?.getData('text/plain')
+  if (!headingId) return
+  const qid = Number(zone.dataset.qid)
+  if (qid) setResponse(qid, headingId)
+}
+
+function onPassageClick(e: MouseEvent) {
+  const btn = (e.target as HTMLElement).closest?.('.phz__clear') as HTMLElement | null
+  if (!btn) return
+  e.preventDefault()
+  const qid = Number(btn.dataset.qid)
+  if (qid) setResponse(qid, null)
+}
 const optionsOpen = ref(false)
 const highContrast = ref(false)
 type TextSize = 'small' | 'medium' | 'large'
@@ -206,6 +290,28 @@ function groupedQuestions(s: any) {
     }
   }
   return groups
+}
+
+function linkedRangeLabel(items: any[], q: any): string {
+  const linked = items.filter(item => item.data?.linked_to === q.number)
+  if (!linked.length) return String(q.number ?? '')
+  const nums = [q.number, ...linked.map((i: any) => i.number)].filter(Boolean).sort((a: number, b: number) => a - b)
+  return `${nums[0]}-${nums[nums.length - 1]}`
+}
+
+function hasSummaryDragDrop(group: any) {
+  return Array.isArray(group.items[0]?.data?.word_bank) && group.items[0].data.word_bank.length > 0
+}
+
+function hasSummaryInline(group: any) {
+  return !!group.items[0]?.data?.summary_body
+}
+
+function groupTitle(group: any) {
+  if (group.type === 'reading_matching_headings') return 'Choose the correct heading for each paragraph.'
+  if (hasSummaryDragDrop(group)) return 'Complete each sentence. Choose the correct ending from the box below.'
+  if (hasSummaryInline(group)) return 'Complete the summary. Write ONE WORD ONLY from the text for each answer.'
+  return typeLabel(group.type)
 }
 
 function optionListTitle(type: string) {
