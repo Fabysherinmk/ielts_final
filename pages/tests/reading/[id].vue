@@ -310,7 +310,11 @@ function hasSummaryInline(group: any) {
 function groupTitle(group: any) {
   if (group.type === 'reading_matching_headings') return 'Choose the correct heading for each paragraph.'
   if (hasSummaryDragDrop(group)) return 'Complete each sentence. Choose the correct ending from the box below.'
-  if (hasSummaryInline(group)) return 'Complete the summary. Write ONE WORD ONLY from the text for each answer.'
+  if (hasSummaryInline(group)) {
+    const limit = group.items[0]?.data?.word_limit
+    const limitText = limit === 1 ? 'ONE WORD ONLY' : limit ? `NO MORE THAN ${limit} WORDS` : 'ONE WORD ONLY'
+    return `Complete the summary. Write ${limitText} from the text for each answer.`
+  }
   return typeLabel(group.type)
 }
 

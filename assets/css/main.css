@@ -479,6 +479,41 @@ code {
 .question input[type=text]:focus {
   outline: none; background: var(--primary-100); box-shadow: 0 2px 0 var(--primary-600);
 }
+.inline-blank-input {
+  display: inline-block;
+  width: 130px;
+  border: 1.5px solid #555;
+  background: #fff;
+  border-radius: 3px;
+  padding: 3px 10px;
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: 700;
+  text-align: center;
+  vertical-align: middle;
+  margin: 0 4px;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.inline-blank-input::placeholder {
+  color: #222;
+  font-weight: 700;
+  opacity: 1;
+}
+.inline-blank-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--primary-50);
+}
+.inline-blank-input:not(:placeholder-shown) {
+  font-weight: 400;
+  text-align: left;
+}
+.inline-word-limit {
+  display: block;
+  margin: 6px 0 0 40px;
+  color: #555;
+  font-size: 13px;
+}
 .question select {
   padding: 6px 10px; border: 1px solid var(--border-strong); border-radius: 6px;
   font-size: 14px; background: #fff;
