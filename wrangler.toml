@@ -9,11 +9,11 @@ assets = { directory = ".output/public" }
 # Accessed in server handlers as: event.context.cloudflare.env.ielts_db
 # Push schema:  npm run d1:schema
 # Reseed:       npm run d1:seed
-# Remote shell: npx wrangler d1 execute irelts --remote --command "SELECT 1"
+# Remote shell: npx wrangler d1 execute ielts --remote --command "SELECT 1"
 [[d1_databases]]
 binding = "ielts_db"
-database_name = "irelts"
-database_id = "1b3fa2ff-a1b0-45c1-ba34-93dda13c37ce"
+database_name = "ielts"
+database_id = "4050487f-22cb-45d3-8465-3379f8a94e2c"
 
 # ---------------------------------------------------------------------------
 # R2 binding — object storage for audio + images
