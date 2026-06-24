@@ -13,7 +13,7 @@ assets = { directory = ".output/public" }
 [[d1_databases]]
 binding = "ielts_db"
 database_name = "irelts"
-database_id = "85557506-44c3-4a99-9cea-39d56565047c"
+database_id = "1b3fa2ff-a1b0-45c1-ba34-93dda13c37ce"
 
 # ---------------------------------------------------------------------------
 # R2 binding — object storage for audio + images
