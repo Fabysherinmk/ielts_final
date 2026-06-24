@@ -23,6 +23,11 @@ export default defineNuxtConfig({
     adminPassword: process.env.ADMIN_PASSWORD || 'admin123',
     // Public URL R2 serves uploads from.
     r2PublicUrl: process.env.R2_PUBLIC_URL || 'https://pub-14064a4af44e450d8aa584606b77ceb4.r2.dev',
+    // S3-compatible R2 storage configuration (external account)
+    r2AccessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+    r2SecretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+    r2Endpoint: process.env.R2_ENDPOINT || '',
+    r2BucketName: process.env.R2_BUCKET_NAME || 'test-bucket',
     public: {
       appName: 'IELTS Mock Test Platform'
     }
