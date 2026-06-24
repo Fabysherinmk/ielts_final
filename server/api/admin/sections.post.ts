@@ -2,7 +2,7 @@ import { useDb } from '~/server/utils/db'
 import { requireAdmin } from '~/server/utils/auth'
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  await requireAdmin(event)
   const body = await readBody<any>(event)
   if (!body?.test_id) throw createError({ statusCode: 400, statusMessage: 'test_id required' })
   const db = useDb(event)

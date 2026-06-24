@@ -1,76 +1,73 @@
-import Database from 'better-sqlite3'
-import { readFileSync, existsSync, mkdirSync } from 'node:fs'
-import { resolve, dirname } from 'node:path'
-
-// Initialize database singleton
-const dbPath = resolve(process.cwd(), process.env.DB_PATH || './data/ielts.sqlite')
-if (!existsSync(dirname(dbPath))) mkdirSync(dirname(dbPath), { recursive: true })
-const db = new Database(dbPath)
-db.pragma('journal_mode = WAL')
-db.pragma('foreign_keys = ON')
-
-// Apply schema if needed
-db.exec(readFileSync(resolve(process.cwd(), 'server/db/schema.sql'), 'utf8'))
+import type { H3Event } from 'h3'
 
 export interface AppDb {
   /** First row or null. */
-  first<T = any>(sql: string, ...args: any[]): T | null
+  first<T = any>(sql: string, ...args: any[]): Promise<T | null>
   /** All matching rows. */
-  all<T = any>(sql: string, ...args: any[]): T[]
+  all<T = any>(sql: string, ...args: any[]): Promise<T[]>
   /** INSERT/UPDATE/DELETE with metadata. */
-  run(sql: string, ...args: any[]): { lastInsertRowid: number; changes: number }
+  run(sql: string, ...args: any[]): Promise<{ lastInsertRowid: number; changes: number }>
   /** Prepare a statement for batch execution. */
   prepare(sql: string, ...args: any[]): any
   /** Execute statements in a batch transaction. */
   batch(stmts: any[]): Promise<any[]>
 }
 
-function useDb(): AppDb {
+function useDb(event: H3Event): AppDb {
+  const db = event.context.cloudflare?.env?.ielts_db
+  if (!db) {
+    throw new Error('D1 database binding not found (ielts_db)')
+  }
+
   return {
-    first<T = any>(sql: string, ...args: any[]): T | null {
-      const stmt = db.prepare(sql)
-      const result = stmt.get(...args) as T
+    async first<T = any>(sql: string, ...args: any[]): Promise<T | null> {
+      const result = await db.prepare(sql).bind(...args).first<T>()
       return result || null
     },
-    all<T = any>(sql: string, ...args: any[]): T[] {
-      const stmt = db.prepare(sql)
-      return stmt.all(...args) as T[]
+
+    async all<T = any>(sql: string, ...args: any[]): Promise<T[]> {
+      const { results } = await db.prepare(sql).bind(...args).all<T>()
+      return results
     },
-    run(sql: string, ...args: any[]): { lastInsertRowid: number; changes: number } {
-      const stmt = db.prepare(sql)
-      const result = stmt.run(...args)
+
+    async run(sql: string, ...args: any[]): Promise<{ lastInsertRowid: number; changes: number }> {
+      const meta = await db.prepare(sql).bind(...args).run()
       return {
-        lastInsertRowid: Number(result.lastInsertRowid),
-        changes: Number(result.changes)
+        lastInsertRowid: Number(meta.lastInsertRowid ?? 0),
+        changes: meta.changes ?? 0
       }
     },
+
     prepare(sql: string, ...args: any[]) {
-      const stmt = db.prepare(sql)
+      const stmt = db.prepare(sql).bind(...args)
       return {
-        run() {
-          const result = stmt.run(...args)
+        async run() {
+          const meta = await stmt.run()
           return {
-            lastInsertRowid: Number(result.lastInsertRowid),
-            changes: Number(result.changes)
+            lastInsertRowid: Number(meta.lastInsertRowid ?? 0),
+            changes: meta.changes ?? 0
           }
         },
-        all() {
-          return stmt.all(...args)
+        async all() {
+          const { results } = await stmt.all()
+          return results
         },
-        get() {
-          return stmt.get(...args)
+        async get() {
+          return await stmt.first()
         }
       }
     },
+
     async batch(stmts: any[]): Promise<any[]> {
-      const runBatch = db.transaction((statements: any[]) => {
-        const results: any[] = []
-        for (const s of statements) {
-          results.push(s.run())
+      const d1Stmts = stmts.map((s) => {
+        // If it's already a prepared statement (has _statement), use it
+        if (s._statement) {
+          return s
         }
-        return results
+        // Otherwise, assume it's { sql, args } or similar and create statement
+        return s
       })
-      return runBatch(stmts)
+      return await db.batch(d1Stmts)
     }
   }
 }

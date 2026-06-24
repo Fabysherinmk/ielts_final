@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     body.test_id
   )
   if (!test) throw createError({ statusCode: 404, statusMessage: 'Test not found' })
-  const u = currentUser(event)
+  const u = await currentUser(event)
   const info = await db.run(
     'INSERT INTO attempts (user_id, test_id) VALUES (?, ?)',
     u ? u.uid : null, body.test_id

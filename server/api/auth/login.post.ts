@@ -11,6 +11,6 @@ export default defineEventHandler(async (event) => {
   if (!user) throw createError({ statusCode: 401, statusMessage: 'Invalid credentials' })
   const ok = await checkPassword(body.password, user.password_hash)
   if (!ok) throw createError({ statusCode: 401, statusMessage: 'Invalid credentials' })
-  issueSession(event, { id: user.id, role: user.role, email: user.email })
+  await issueSession(event, { id: user.id, role: user.role, email: user.email })
   return { id: user.id, email: user.email, name: user.name, role: user.role }
 })

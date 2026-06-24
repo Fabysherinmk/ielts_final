@@ -7,6 +7,6 @@ export default defineEventHandler(async (event) => {
   if (!body?.password || body.password !== cfg.adminPassword) {
     throw createError({ statusCode: 401, statusMessage: 'Invalid admin password' })
   }
-  issueSession(event, { id: 'admin', role: 'admin', email: 'admin@local' })
+  await issueSession(event, { id: 'admin', role: 'admin', email: 'admin@local' })
   return { ok: true, role: 'admin' }
 })

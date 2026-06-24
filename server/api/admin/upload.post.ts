@@ -6,7 +6,7 @@ import { readMultipartFormData } from 'h3'
 // Streams the bytes to R2 at key `{kind}/<timestamp>-<hex><ext>` and returns
 // the full public URL served by pub-*.r2.dev.
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  await requireAdmin(event)
   const parts = await readMultipartFormData(event)
   if (!parts) throw createError({ statusCode: 400, statusMessage: 'No file uploaded' })
 

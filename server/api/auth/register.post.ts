@@ -14,6 +14,6 @@ export default defineEventHandler(async (event) => {
     'INSERT INTO users (email, name, password_hash, role) VALUES (?, ?, ?, ?)',
     body.email, body.name ?? '', hash, 'student'
   )
-  issueSession(event, { id: info.lastInsertRowid, role: 'student', email: body.email })
+  await issueSession(event, { id: info.lastInsertRowid, role: 'student', email: body.email })
   return { id: info.lastInsertRowid, email: body.email, role: 'student' }
 })

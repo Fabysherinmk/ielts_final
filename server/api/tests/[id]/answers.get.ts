@@ -1,19 +1,19 @@
 import { useDb } from '~/server/utils/db'
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
   const id = Number(getRouterParam(event, 'id'))
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Invalid test id' })
-  const db = useDb()
+  const db = useDb(event)
   
   // Get test info
-  const test = db.first<any>(
+  const test = await db.first<any>(
     'SELECT id, title, skill, description, duration_min FROM tests WHERE id = ? AND published = 1',
     id
   )
   if (!test) throw createError({ statusCode: 404, statusMessage: 'Test not found' })
 
   // Get sections with questions (including answers)
-  const sections = db.all<any>(
+  const sections = await db.all<any>(
     `SELECT id, order_index, title, instructions, body, audio_path, image_path, extra_json
      FROM sections WHERE test_id = ? ORDER BY order_index`,
     id
@@ -22,7 +22,7 @@ export default defineEventHandler((event) => {
   let questions: any[] = []
   if (sectionIds.length) {
     const ph = sectionIds.map(() => '?').join(',')
-    questions = db.all<any>(
+    questions = await db.all<any>(
       `SELECT id, section_id, order_index, number, type, prompt, data_json, answer_json, points
        FROM questions WHERE section_id IN (${ph})
        ORDER BY section_id, order_index`,

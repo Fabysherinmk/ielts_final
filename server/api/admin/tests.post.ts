@@ -2,7 +2,7 @@ import { useDb } from '~/server/utils/db'
 import { requireAdmin } from '~/server/utils/auth'
 
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  await requireAdmin(event)
   const body = await readBody<{ title: string; skill: string; description?: string; duration_min?: number }>(event)
   if (!body?.title || !body?.skill) throw createError({ statusCode: 400, statusMessage: 'title and skill required' })
   if (!['reading', 'listening', 'writing', 'speaking'].includes(body.skill)) {

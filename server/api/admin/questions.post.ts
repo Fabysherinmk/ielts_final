@@ -4,7 +4,7 @@ import { requireAdmin } from '~/server/utils/auth'
 // Accepts single question OR { questions: [...] } for bulk upload.
 // Uses D1 batch so all inserts are atomic.
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  await requireAdmin(event)
   const body = await readBody<any>(event)
   const list = Array.isArray(body?.questions) ? body.questions : [body]
 

@@ -3,7 +3,7 @@ import { requireAdmin } from '~/server/utils/auth'
 
 // Returns full test INCLUDING correct answers for admin editing.
 export default defineEventHandler(async (event) => {
-  requireAdmin(event)
+  await requireAdmin(event)
   const id = Number(getRouterParam(event, 'id'))
   if (!id) throw createError({ statusCode: 400, statusMessage: 'Invalid test id' })
 

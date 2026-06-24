@@ -1,8 +1,8 @@
 import { useDb } from '~/server/utils/db'
 
-export default defineEventHandler((event) => {
-  const db = useDb()
-  return db.all(
+export default defineEventHandler(async (event) => {
+  const db = useDb(event)
+  return await db.all(
     `SELECT id, title, skill, description, duration_min, created_at
      FROM tests t
      WHERE published = 1
