@@ -30,7 +30,7 @@ export default defineNuxtConfig({
   nitro: {
     // Deploy target: Cloudflare Workers. DB is D1, uploads are R2 — both via bindings
     // injected at runtime.
-    preset: 'cloudflare',
+    preset: 'cloudflare_module',
     experimental: {
       asyncContext: true
     }
