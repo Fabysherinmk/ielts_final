@@ -1,7 +1,8 @@
 name = "ielts-platform"
 compatibility_date = "2024-11-01"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = "dist"
+main = ".output/server/index.mjs"
+assets = { directory = ".output/public" }
 
 # ---------------------------------------------------------------------------
 # D1 binding — SQL database

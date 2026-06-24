@@ -11,7 +11,7 @@
     "start": "node .output/server/index.mjs",
     "preview": "nuxt build && wrangler pages dev dist",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
-    "deploy": "nuxt build && wrangler pages deploy dist --project-name=ielts-platform",
+    "deploy": "nuxt build && wrangler deploy",
     "audio:cambridge17": "node --experimental-strip-types scripts/extract-cambridge17-audio.ts",
     "seed:local-sqlite": "node --experimental-strip-types scripts/seed.ts",
     "reset-db": "node --experimental-strip-types scripts/reset-db.ts",
