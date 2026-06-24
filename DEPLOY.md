@@ -1,13 +1,12 @@
-# Deploying to Cloudflare (Pages + D1 + R2)
-# Fixed deployment config for Pages
+# Deploying to Cloudflare (Workers + D1 + R2)
 
 This app runs on a full Cloudflare stack:
 
-- **Cloudflare Pages** — hosts the Nuxt app (SSR via Nitro `cloudflare-pages` preset)
+- **Cloudflare Workers** — hosts the Nuxt app (SSR via Nitro `cloudflare` preset)
 - **Cloudflare D1** — SQL database (binding: `ielts_db`, db name: `ielts-db`)
 - **Cloudflare R2** — object storage for audio + images (binding: `UPLOADS`, bucket: `test-bucket`)
 
-**No API keys or access-key signatures are needed in the app code.** Pages injects D1 and R2 as bindings at runtime; authorization is granted because the Pages project, the D1 database, and the R2 bucket live under the same Cloudflare account. Your R2 S3-compatible keys are only useful for *external* tools (rclone, `aws s3`, etc.), not for this app.
+**No API keys or access-key signatures are needed in the app code.** Workers injects D1 and R2 as bindings at runtime; authorization is granted because the Workers project, the D1 database, and the R2 bucket live under the same Cloudflare account. Your R2 S3-compatible keys are only useful for *external* tools (rclone, `aws s3`, etc.), not for this app.
 
 ---
 

@@ -28,9 +28,9 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
-    // Deploy target: Cloudflare Pages. DB is D1, uploads are R2 — both via bindings
+    // Deploy target: Cloudflare Workers. DB is D1, uploads are R2 — both via bindings
     // injected at runtime.
-    preset: 'cloudflare-pages',
+    preset: 'cloudflare',
     experimental: {
       asyncContext: true
     }
