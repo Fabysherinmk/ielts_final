@@ -163,20 +163,20 @@ function useDb(event?: H3Event): AppDb {
         return results || []
       },
       async run(sql: string, ...args: any[]): Promise<{ lastInsertRowid: number; changes: number }> {
-        const meta = await db.prepare(sql).bind(...args).run()
+        const result = await db.prepare(sql).bind(...args).run()
         return {
-          lastInsertRowid: Number(meta.lastInsertRowid ?? 0),
-          changes: meta.changes ?? 0
+          lastInsertRowid: Number(result.meta?.last_row_id ?? result.lastInsertRowid ?? 0),
+          changes: result.meta?.changes ?? result.changes ?? 0
         }
       },
       prepare(sql: string, ...args: any[]) {
         const stmt = db.prepare(sql).bind(...args)
         return {
           async run() {
-            const meta = await stmt.run()
+            const result = await stmt.run()
             return {
-              lastInsertRowid: Number(meta.lastInsertRowid ?? 0),
-              changes: meta.changes ?? 0
+              lastInsertRowid: Number(result.meta?.last_row_id ?? result.lastInsertRowid ?? 0),
+              changes: result.meta?.changes ?? result.changes ?? 0
             }
           },
           async all() {
@@ -185,11 +185,14 @@ function useDb(event?: H3Event): AppDb {
           },
           async get() {
             return await stmt.first()
-          }
+          },
+          _statement: true,
+          _stmt: stmt
         }
       },
       async batch(stmts: any[]): Promise<any[]> {
         const d1Stmts = stmts.map((s) => {
+          if (s._statement && s._stmt) return s._stmt
           if (s._statement) return s
           if (typeof s === 'object' && s.sql) {
             return db.prepare(s.sql).bind(...(s.args || []))
