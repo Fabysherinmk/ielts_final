@@ -31,9 +31,9 @@
       <tbody>
         <tr v-for="fb in attempt.feedback" :key="fb.question_id">
           <td>{{ fb.number }}</td>
-          <td><code style="font-size:12px;">{{ fb.type }}</code></td>
-          <td><pre style="margin:0; white-space:pre-wrap; font-family:inherit;">{{ fmt(fb.response) }}</pre></td>
-          <td><pre style="margin:0; white-space:pre-wrap; font-family:inherit;">{{ fmt(fb.expected) }}</pre></td>
+          <td><span style="font-size:13px; font-weight:500; color:var(--text-muted);">{{ formatType(fb.type) }}</span></td>
+          <td><pre style="margin:0; white-space:pre-wrap; font-family:inherit; font-weight:600;">{{ fmt(fb.response) }}</pre></td>
+          <td><pre style="margin:0; white-space:pre-wrap; font-family:inherit; font-weight:600; color:var(--primary-600);">{{ fmt(fb.expected) }}</pre></td>
           <td>
             <span v-if="fb.correct === true" class="badge" style="background:#D1FAE5; color:#065F46;">
               <Icon name="check" :size="12" /> Correct
@@ -60,8 +60,47 @@
 <script setup lang="ts">
 const route = useRoute()
 const { data: attempt } = await useFetch<any>(`/api/attempts/${route.params.id}`)
+
+function formatType(t: string): string {
+  if (!t) return ''
+  const map: Record<string, string> = {
+    reading_matching_headings: 'Matching Headings',
+    reading_tfng: 'True / False / Not Given',
+    reading_ynng: 'Yes / No / Not Given',
+    reading_mcq_single: 'Multiple Choice (Single)',
+    reading_mcq_multi: 'Multiple Choice (Multiple)',
+    reading_summary_completion: 'Summary Completion',
+    reading_sentence_completion: 'Sentence Completion',
+    reading_short_answer: 'Short Answer',
+    reading_matching_information: 'Matching Information',
+    reading_matching_features: 'Matching Features',
+    reading_diagram_labelling: 'Diagram Labelling',
+    reading_note_completion: 'Note Completion',
+    reading_table_completion: 'Table Completion',
+    reading_flowchart_completion: 'Flowchart Completion',
+    listening_form_completion: 'Form Completion',
+    listening_note_completion: 'Note Completion',
+    listening_table_completion: 'Table Completion',
+    listening_flowchart_completion: 'Flowchart Completion',
+    listening_summary_completion: 'Summary Completion',
+    listening_sentence_completion: 'Sentence Completion',
+    listening_mcq_single: 'Multiple Choice (Single)',
+    listening_mcq_multi: 'Multiple Choice (Multiple)',
+    listening_matching: 'Matching',
+    listening_map_labelling: 'Map Labelling',
+    listening_short_answer: 'Short Answer',
+    writing_task_1: 'Writing Task 1',
+    writing_task_2: 'Writing Task 2',
+    speaking_part_1: 'Speaking Part 1',
+    speaking_part_2: 'Speaking Part 2',
+    speaking_part_3: 'Speaking Part 3'
+  }
+  return map[t] || t.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+}
+
 function fmt(v: any) {
   if (v == null) return '—'
+  if (Array.isArray(v)) return v.join(' / ')
   if (typeof v === 'object') return JSON.stringify(v)
   return String(v)
 }
