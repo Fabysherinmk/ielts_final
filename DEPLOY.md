@@ -1,4 +1,5 @@
 # Deploying to Cloudflare (Pages + D1 + R2)
+# Fixed deployment config for Pages
 
 This app runs on a full Cloudflare stack:
 
