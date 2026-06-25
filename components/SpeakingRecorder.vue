@@ -4,8 +4,8 @@
       type="button"
       class="record-btn"
       :class="{ recording: isRecording }"
-      :disabled="uploading"
-      :aria-label="isRecording ? 'Stop recording' : (audio ? 'Re-record' : 'Start recording')"
+      :disabled="uploading || (isTestMode && !!audio)"
+      :aria-label="isRecording ? 'Stop recording' : (audio ? (isTestMode ? 'Recorded' : 'Re-record') : 'Start recording')"
       @click="toggle"
     >
       <Icon :name="isRecording ? 'pause' : 'mic'" :size="22" />
@@ -20,7 +20,7 @@
         <Icon name="upload" :size="14" /> Uploading…
       </div>
       <div v-else-if="audio" class="recorder__status ok">
-        <Icon name="check-circle" :size="14" /> Response saved
+        <Icon name="check-circle" :size="14" /> {{ isTestMode ? 'Response saved (submitted)' : 'Response saved' }}
       </div>
       <div v-else class="recorder__status muted">
         <Icon name="info" :size="14" /> Tap the microphone to record your answer
@@ -32,7 +32,13 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ questionId: number; audio?: string }>()
+const props = withDefaults(defineProps<{
+  questionId: number
+  audio?: string
+  isTestMode?: boolean
+}>(), {
+  isTestMode: false
+})
 const emit = defineEmits<{ (e: 'update', url: string): void }>()
 const modal = useModal()
 const toast = useToast()

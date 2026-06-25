@@ -7,12 +7,18 @@
       </div>
       <div class="meta">
         <span class="candidate"><Icon name="user" :size="14" /> Candidate · {{ test.title }}</span>
-        <span class="timer" :class="{ low: remaining <= 180 }">
+        <span v-if="mode === 'test'" class="timer" :class="{ low: remaining <= 180 }">
           <Icon name="clock" :size="14" /> {{ timeDisplay }}
         </span>
         <button class="topbtn" @click="submit"><Icon name="check" :size="13" /> Submit</button>
       </div>
     </header>
+
+    <div v-if="mode === 'practice'" class="practice-strip">
+      <strong>Practice mode</strong>
+      <span>Timer is hidden. Switch to test mode for real exam rules.</span>
+      <NuxtLink :to="`/tests/speaking/${testId}?mode=test`">Start test mode</NuxtLink>
+    </div>
 
     <section class="container">
       <div class="card">
@@ -30,7 +36,7 @@
         <div v-for="q in currentSection?.questions || []" :key="q.id" class="question">
           <span class="qnum">{{ q.order_index + 1 }}</span>
           <span class="q-prompt" v-html="q.prompt"></span>
-          <SpeakingRecorder :question-id="q.id" :audio="responses[q.id]" @update="val => setResponse(q.id, val)" />
+          <SpeakingRecorder :question-id="q.id" :audio="responses[q.id]" :is-test-mode="mode === 'test'" @update="val => setResponse(q.id, val)" />
         </div>
       </div>
     </section>
@@ -66,6 +72,8 @@ const responses = reactive<Record<number, any>>({})
 const currentSectionIndex = ref(0)
 const currentSection = computed(() => test.value?.sections?.[currentSectionIndex.value])
 
+const mode = computed(() => route.query.mode === 'practice' ? 'practice' : 'test')
+
 const duration = computed(() => (test.value?.duration_min || 14) * 60)
 const remaining = ref(0)
 const timeDisplay = computed(() => {
@@ -73,12 +81,23 @@ const timeDisplay = computed(() => {
   const m = Math.floor(s / 60), sec = s % 60
   return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`
 })
+
+let timer: ReturnType<typeof setInterval> | null = null
 onMounted(() => {
   remaining.value = duration.value
-  const iv = setInterval(() => {
-    remaining.value--
-    if (remaining.value <= 0) { clearInterval(iv); submit() }
-  }, 1000)
+  if (mode.value === 'test') {
+    timer = setInterval(() => {
+      remaining.value--
+      if (remaining.value <= 0) {
+        if (timer) clearInterval(timer)
+        submit()
+      }
+    }, 1000)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (timer) clearInterval(timer)
 })
 
 function setResponse(qid: number, v: any) { responses[qid] = v }

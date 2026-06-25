@@ -2,6 +2,23 @@
   <div v-if="test" class="inspera-shell" :class="[`inspera-shell--${mode}`, `text-size-${textSize}`, { 'high-contrast': highContrast }]">
     <header class="inspera-topbar">
       <div class="inspera-logo">IELTS</div>
+      
+      <!-- Top-left audio controls for practice mode -->
+      <div v-if="mode === 'practice'" class="practice-audio-top-left" style="margin-left: 24px; display: flex; align-items: center; gap: 8px;">
+        <div v-if="hasTts" style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.06); padding: 4px 10px; border-radius: 6px;">
+          <button type="button" @click="ttsToggle" :title="ttsPlaying ? 'Pause' : 'Play'" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; color: #1e3a8a; padding: 0;">
+            <Icon :name="ttsPlaying ? 'pause-circle' : 'play-circle'" :size="24" />
+          </button>
+          <button type="button" @click="ttsReplay" title="Replay" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; color: #475569; padding: 0;">
+            <Icon name="rotate-ccw" :size="16" />
+          </button>
+          <span style="font-size: 11px; font-weight: 600; color: #334155;">AI Narrator</span>
+        </div>
+        <div v-else-if="currentSection?.audio_path" style="display: flex; align-items: center; background: rgba(0,0,0,0.06); padding: 4px 10px; border-radius: 6px;">
+          <audio :src="currentSection.audio_path" controls style="height: 30px; max-width: 220px;"></audio>
+        </div>
+      </div>
+
       <div class="inspera-candidate">
         <strong>Test taker ID</strong>
         <span v-if="mode === 'test' && audioPlaying"><Icon name="volume-2" :size="12" /> Audio is Playing</span>
@@ -9,6 +26,11 @@
         <span v-else-if="mode === 'practice'"><Icon name="rotate-ccw" :size="12" /> Practice mode</span>
       </div>
       <div class="inspera-status">
+        <!-- Render timer in top-right for test mode -->
+        <span v-if="mode === 'test'" class="test-timer-top-right" style="font-size: 16px; font-weight: 700; color: #e11b2b; margin-right: 16px; display: inline-flex; align-items: center; gap: 6px;">
+          <Icon name="clock" :size="15" />
+          {{ timeDisplay }}
+        </span>
         <span class="connection"><Icon name="wifi" :size="21" /></span>
         <button class="inspera-icon-btn" title="Messages"><Icon name="bell" :size="22" /></button>
         <button class="inspera-icon-btn" title="Options" @click="optionsOpen = true"><Icon name="menu" :size="24" /></button>
@@ -27,32 +49,11 @@
         <p>{{ currentSection?.instructions || `Listen and answer questions ${sectionQuestionRange(currentSection)}.` }}</p>
         <div class="part-meta">
           <span>Questions {{ sectionQuestionRange(currentSection) }}</span>
-          <span v-if="mode === 'test'">{{ timeDisplay }}</span>
         </div>
 
-        <!-- Practice mode: TTS player or real audio -->
-        <div v-if="mode === 'practice'" class="practice-audio-wrap">
-          <div v-if="hasTts" class="tts-player">
-            <div class="tts-player__label">
-              <Icon name="volume-2" :size="15" /> AI Narrator — practice mode
-            </div>
-            <div class="tts-player__controls">
-              <button class="tts-btn tts-btn--play" @click="ttsToggle" :title="ttsPlaying ? 'Pause' : 'Play'">
-                <Icon :name="ttsPlaying ? 'pause-circle' : 'play-circle'" :size="32" />
-              </button>
-              <button class="tts-btn" @click="ttsStop" title="Stop & reset">
-                <Icon name="square" :size="22" />
-              </button>
-              <button class="tts-btn" @click="ttsReplay" title="Replay from start">
-                <Icon name="rotate-ccw" :size="20" />
-              </button>
-            </div>
-            <p class="tts-player__hint">You can replay the audio as many times as needed in practice mode.</p>
-          </div>
-          <div v-else-if="currentSection?.audio_path">
-            <audio :src="currentSection.audio_path" controls preload="metadata"></audio>
-          </div>
-          <div v-else class="banner warn">
+        <!-- Practice mode empty placeholder (audio player is now top-left) -->
+        <div v-if="mode === 'practice'" class="practice-audio-placeholder" style="margin-bottom: 12px;">
+          <div v-if="!hasTts && !currentSection?.audio_path" class="banner warn">
             <Icon name="alert-triangle" :size="18" />
             <span>No audio attached to this part.</span>
           </div>

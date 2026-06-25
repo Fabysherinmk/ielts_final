@@ -15,21 +15,33 @@
     <h3 class="idp-practice-card__title">{{ title }}</h3>
 
     <div class="idp-practice-card__actions">
-      <NuxtLink :to="accessTo" class="idp-practice-card__btn idp-practice-card__btn--primary">
-        Access now
+      <NuxtLink :to="testModeUrl" class="idp-practice-card__btn idp-practice-card__btn--primary">
+        Test Mode
       </NuxtLink>
-      <NuxtLink v-if="answersTo" :to="answersTo" target="_blank" class="idp-practice-card__btn idp-practice-card__btn--secondary">
-        View answers
+      <NuxtLink :to="practiceModeUrl" class="idp-practice-card__btn idp-practice-card__btn--secondary">
+        Practice Mode
       </NuxtLink>
     </div>
   </article>
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue'
+
+const props = defineProps<{
   title: string
   accessTo: string
   answersTo?: string
   format?: string
 }>()
+
+const testModeUrl = computed(() => {
+  const base = props.accessTo.split('?')[0]
+  return `${base}?mode=test`
+})
+
+const practiceModeUrl = computed(() => {
+  const base = props.accessTo.split('?')[0]
+  return `${base}?mode=practice`
+})
 </script>

@@ -11,7 +11,7 @@
         <span>{{ test.title }}</span>
       </div>
       <div class="reading-status">
-        <span class="reading-timer" :class="{ low: remaining <= 300 }">
+        <span v-if="mode === 'test'" class="reading-timer" :class="{ low: remaining <= 300 }">
           <Icon name="clock" :size="14" />
           {{ timeDisplay }}
         </span>
@@ -19,6 +19,12 @@
         <button class="inspera-icon-btn" title="Options" @click="optionsOpen = true"><Icon name="menu" :size="24" /></button>
       </div>
     </header>
+
+    <div v-if="mode === 'practice'" class="practice-strip">
+      <strong>Practice mode</strong>
+      <span>Timer is hidden. Switch to test mode for real exam rules.</span>
+      <NuxtLink :to="`/tests/reading/${testId}?mode=test`">Start test mode</NuxtLink>
+    </div>
 
     <section class="reading-split">
       <div class="reading-panel reading-passage">
@@ -156,6 +162,8 @@ const route = useRoute()
 const router = useRouter()
 const testId = Number(route.params.id)
 
+const mode = computed(() => route.query.mode === 'practice' ? 'practice' : 'test')
+
 const { data: test } = await useFetch<any>(`/api/tests/${testId}`)
 const responses = reactive<Record<number, any>>({})
 const currentSectionIndex = ref(0)
@@ -249,13 +257,15 @@ onMounted(() => {
     textSize.value = savedTextSize
   }
   remaining.value = duration.value
-  timer = setInterval(() => {
-    remaining.value--
-    if (remaining.value <= 0) {
-      if (timer) clearInterval(timer)
-      submit()
-    }
-  }, 1000)
+  if (mode.value === 'test') {
+    timer = setInterval(() => {
+      remaining.value--
+      if (remaining.value <= 0) {
+        if (timer) clearInterval(timer)
+        submit()
+      }
+    }, 1000)
+  }
 })
 onBeforeUnmount(() => {
   if (timer) clearInterval(timer)
