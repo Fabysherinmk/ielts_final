@@ -30,9 +30,10 @@ database_id = "4050487f-22cb-45d3-8465-3379f8a94e2c"
 # bucket_name = "test-bucket"
 
 # ---------------------------------------------------------------------------
-# Runtime variables — safe to commit, non-secret.
+# Runtime variables — R2 S3 credentials
 # ---------------------------------------------------------------------------
-# [vars]
-# R2_PUBLIC_URL = "https://pub-14064a4af44e450d8aa584606b77ceb4.r2.dev"
-# Override secrets with:  npx wrangler pages secret put JWT_SECRET
-# For local dev, values come from .dev.vars (gitignored).
+[vars]
+R2_ACCESS_KEY_ID = "d62519588af382c80dcfb04de2dc2d22"
+R2_SECRET_ACCESS_KEY = "5b4f44392a064761151a138928e69790051982867e925fa674ae9ef27c2d408d"
+R2_ENDPOINT = "https://4fd82676dc0328c3ae8812138409e980.r2.cloudflarestorage.com"
+R2_BUCKET_NAME = "test-bucket"

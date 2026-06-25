@@ -44,14 +44,21 @@ const MISSING_R2_WARNING =
   'To enable real uploads, create an R2 bucket "test-bucket" in Cloudflare and update wrangler.toml.'
 
 export function useR2(event?: H3Event): R2Bucket {
-  // 1. Check if S3 credentials are configured in Nuxt runtime config
+  // 1. Check if S3 credentials are configured in Nuxt runtime config or cloudflare environment bindings
   const cfg = useRuntimeConfig(event)
-  if (cfg.r2AccessKeyId && cfg.r2SecretAccessKey && cfg.r2Endpoint) {
+  const env = (event as any)?.context?.cloudflare?.env || (event as any)?.context?.cf?.env || globalThis
+  
+  const accessKeyId = cfg.r2AccessKeyId || env?.R2_ACCESS_KEY_ID
+  const secretAccessKey = cfg.r2SecretAccessKey || env?.R2_SECRET_ACCESS_KEY
+  const endpoint = cfg.r2Endpoint || env?.R2_ENDPOINT
+  const bucketName = cfg.r2BucketName || env?.R2_BUCKET_NAME || 'test-bucket'
+
+  if (accessKeyId && secretAccessKey && endpoint) {
     return createS3Client(
-      cfg.r2Endpoint,
-      cfg.r2BucketName || 'test-bucket',
-      cfg.r2AccessKeyId,
-      cfg.r2SecretAccessKey
+      endpoint,
+      bucketName,
+      accessKeyId,
+      secretAccessKey
     )
   }
 
