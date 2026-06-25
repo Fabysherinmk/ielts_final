@@ -65,7 +65,7 @@ export const cambridge17ListeningTest1 = {
     {
       title: 'Part 1: Buckworth Conservation Group',
       instructions: 'Questions 1-10. Complete the notes below. Write ONE WORD AND/OR A NUMBER for each answer.',
-      audio_path: '/uploads/audio/cambridge-17-test-1-part-1.mp3',
+      audio_path: 'https://pub-14064a4af44e450d8aa584606b77ceb4.r2.dev/audio/cambridge-17-test-1-part-1.mp3',
       body: `
         <div class="ielts-sheet">
           <h2>PART 1 <span>Questions 1-10</span></h2>
@@ -122,7 +122,7 @@ export const cambridge17ListeningTest1 = {
     {
       title: 'Part 2: Boat trip round Tasmania',
       instructions: 'Questions 11-20. Choose the correct letter, A, B or C. For paired questions, choose TWO letters.',
-      audio_path: '/uploads/audio/cambridge-17-test-1-part-2.mp3',
+      audio_path: 'https://pub-14064a4af44e450d8aa584606b77ceb4.r2.dev/audio/cambridge-17-test-1-part-2.mp3',
       body: `
         <div class="ielts-sheet">
           <h2>PART 2 <span>Questions 11-20</span></h2>
@@ -147,7 +147,7 @@ export const cambridge17ListeningTest1 = {
     {
       title: 'Part 3: Work experience for veterinary science students',
       instructions: 'Questions 21-30. Choose the correct letter, A, B or C. Then match each module with the correct comment.',
-      audio_path: '/uploads/audio/cambridge-17-test-1-part-3.mp3',
+      audio_path: 'https://pub-14064a4af44e450d8aa584606b77ceb4.r2.dev/audio/cambridge-17-test-1-part-3.mp3',
       body: `
         <div class="ielts-sheet">
           <h2>PART 3 <span>Questions 21-30</span></h2>
@@ -172,7 +172,7 @@ export const cambridge17ListeningTest1 = {
     {
       title: 'Part 4: Labyrinths',
       instructions: 'Questions 31-40. Complete the notes below. Write ONE WORD ONLY for each answer.',
-      audio_path: '/uploads/audio/cambridge-17-test-1-part-4.mp3',
+      audio_path: 'https://pub-14064a4af44e450d8aa584606b77ceb4.r2.dev/audio/cambridge-17-test-1-part-4.mp3',
       body: `
         <div class="ielts-sheet ielts-sheet--notes">
           <h2>PART 4 <span>Questions 31-40</span></h2>

@@ -15,6 +15,7 @@ import { cambridge17ListeningTest1 } from './data/cambridge17ListeningTest1.ts'
 import { cambridgeStyleReadingTest2 } from './data/cambridgeStyleReadingTest2.ts'
 import { readingTest3 } from './data/readingTest3.ts'
 import { readingTest4 } from './data/readingTest4.ts'
+import { listeningTest1 } from './data/listeningTest1.ts'
 import { listeningTest2 } from './data/listeningTest2.ts'
 import { listeningTest3 } from './data/listeningTest3.ts'
 import { listeningTest4 } from './data/listeningTest4.ts'
@@ -153,6 +154,7 @@ function seedTtsListeningTest(source: typeof listeningTest2) {
   })
 }
 
+seedTtsListeningTest(listeningTest1)
 seedTtsListeningTest(listeningTest2)
 seedTtsListeningTest(listeningTest3)
 seedTtsListeningTest(listeningTest4)
@@ -384,145 +386,6 @@ seedStructuredTest(cambridgeStyleReadingTest2)
 seedStructuredTest(readingTest3)
 seedStructuredTest(readingTest4)
 
-// ---------------------------------------------------------------------------
-// 2) LISTENING TEST (4 parts, 40 questions)
-// ---------------------------------------------------------------------------
-const listeningId = createTest(
-  'Cambridge-style IELTS Academic Listening — Mock Test 1',
-  'listening',
-  'Four listening parts modelled on Cambridge IELTS 20 Test 4. 40 questions. ~30 minutes of audio + 10 min transfer.',
-  40,
-  true
-)
-
-// --- Part 1: Form completion (accommodation enquiry)
-const l1 = createSection(listeningId, 0,
-  'Part 1: Accommodation enquiry',
-  'Complete the form below. Write ONE WORD AND/OR A NUMBER for each answer.',
-  `<strong>Transcript will appear on results page.</strong>
-<p>A prospective tenant calls a letting agent about a furnished flat.</p>`,
-  undefined, undefined,
-  { transcript: 'A: Hello, Riverside Lettings. B: Hi, I saw an ad for a flat on Oak Street... [full script stored for admin].' })
-
-const l1q = [
-  { prompt: 'Caller\'s name: Samuel ____', ans: ['Ngata','Ngata.'] , num: 1 },
-  { prompt: 'Phone number: 0207 ____', ans: '448291', num: 2 },
-  { prompt: 'Monthly rent: £____', ans: ['1250','1,250'], num: 3 },
-  { prompt: 'Deposit required: ____ weeks', ans: '6', num: 4 },
-  { prompt: 'Earliest move-in date: ____ May', ans: '14', num: 5 },
-  { prompt: 'Nearest underground station: ____', ans: 'Finsbury', num: 6 },
-  { prompt: 'Floor number: ____', ans: '3rd', num: 7 },
-  { prompt: 'Included with rent: water and ____', ans: 'internet', num: 8 },
-  { prompt: 'Nearest primary school: ____ School', ans: 'Beechwood', num: 9 },
-  { prompt: 'Lease length: ____ months minimum', ans: '12', num: 10 }
-]
-l1q.forEach((q, i) =>
-  createQ(l1, i, q.num, 'listening_form_completion', q.prompt, { word_limit: 3 }, { answer: q.ans }))
-
-// --- Part 2: Multiple choice + map labelling (museum tour)
-const l2 = createSection(listeningId, 1,
-  'Part 2: Riverside Industrial Museum tour',
-  'Questions 11-15: Choose the correct letter, A, B or C. Questions 16-20: Label the plan of the museum.',
-  `<p>A guide addresses visitors at the start of a tour of an industrial heritage museum.</p>`,
-  undefined, undefined,
-  { transcript: 'Welcome to Riverside Industrial Museum... [full script stored].' })
-
-// MCQ single 11-15
-const l2mcq = [
-  { p: 'The museum was originally built as a:', o:['textile mill','grain warehouse','shipbuilding yard'], a:'B', n:11 },
-  { p: 'Visitors should NOT miss:', o:['the 1850s steam engine','the audio-visual exhibit','the children\'s play area'], a:'A', n:12 },
-  { p: 'The cafe is currently offering free:', o:['coffee refills','cake with every meal','soup with a sandwich'], a:'C', n:13 },
-  { p: 'Photography is:', o:['prohibited entirely','allowed without flash','allowed only on the ground floor'], a:'B', n:14 },
-  { p: 'At the end of the tour visitors will receive a:', o:['free poster','discount voucher for the shop','printed map'], a:'B', n:15 }
-]
-l2mcq.forEach((q, i) =>
-  createQ(l2, i, q.n, 'listening_mcq_single', q.p, { options: q.o }, { answer: q.a }))
-
-// Map labelling 16-20
-const mapLocations = [
-  { id:'A', text:'Ticket office' }, { id:'B', text:'Main gallery' }, { id:'C', text:'Engine hall' },
-  { id:'D', text:'Cafe' }, { id:'E', text:'Gift shop' }, { id:'F', text:'Temporary exhibition' },
-  { id:'G', text:'Outdoor yard' }
-]
-const mapAns = [
-  { p:'Audio guide pick-up point', a:'A', n:16 },
-  { p:'Children\'s discovery zone', a:'F', n:17 },
-  { p:'Steam engine demonstration', a:'C', n:18 },
-  { p:'Vintage tram ride meeting point', a:'G', n:19 },
-  { p:'Meet the guide for the Q&amp;A session', a:'D', n:20 }
-]
-mapAns.forEach((q, i) =>
-  createQ(l2, 5+i, q.n, 'listening_matching', q.p, { options: mapLocations }, { answer: q.a }))
-
-// --- Part 3: MCQ multi + matching (student discussion)
-const l3 = createSection(listeningId, 2,
-  'Part 3: Research methods seminar',
-  'Questions 21-22 choose TWO letters. Questions 23-26 match. Questions 27-30 complete sentences.',
-  `<p>Two postgraduate students, Sian and Diego, discuss their research methods tutor\'s feedback with a supervisor.</p>`,
-  undefined, undefined,
-  { transcript: 'Sian: So our tutor said we need to... [full script].' })
-
-// MCQ multi 21-22
-createQ(l3, 0, 21, 'listening_mcq_multi',
-  'Which TWO difficulties do Sian and Diego mention about their current research design?',
-  { options: [
-    'The sample size is too small.',
-    'The interview questions are too open.',
-    'They cannot access the target demographic.',
-    'The timeline is unrealistic.',
-    'Their ethics approval has expired.'
-  ], choose: 2 },
-  { answer: ['A','D'] }, 2)
-// also a combined Q22 placeholder
-createQ(l3, 1, 22, 'listening_mcq_multi',
-  '(Same question as 21 — in real IELTS this is two separate boxes for the same pair; we store 2 points on Q21.)',
-  { options: ['Placeholder — use Q21 answer.'] , choose: 1 }, { answer: [] }, 0)
-
-// Matching 23-26 (researchers ↔ comments)
-const commentOpts = [
-  { id:'A', text:'should be reworded' }, { id:'B', text:'is too ambitious' },
-  { id:'C', text:'matches the literature well' }, { id:'D', text:'needs more pilot data' },
-  { id:'E', text:'is unclear to participants' }, { id:'F', text:'could be shortened' }
-]
-const commentQs = [
-  { p:'Research question 1', a:'A', n:23 }, { p:'Research question 2', a:'E', n:24 },
-  { p:'Research question 3', a:'C', n:25 }, { p:'Research question 4', a:'B', n:26 }
-]
-commentQs.forEach((q, i) =>
-  createQ(l3, 2+i, q.n, 'listening_matching', q.p, { options: commentOpts }, { answer: q.a }))
-
-// Sentence completion 27-30
-const l3sc = [
-  { p:'They plan to reduce the number of interviews to ____.', a:'twelve', n:27 },
-  { p:'Diego will redesign the ____ survey by Friday.', a:'pilot', n:28 },
-  { p:'Sian agreed to analyse the data using ____ software.', a:'NVivo', n:29 },
-  { p:'The supervisor will send the revised ____ form today.', a:'consent', n:30 }
-]
-l3sc.forEach((q, i) =>
-  createQ(l3, 6+i, q.n, 'listening_sentence_completion', q.p, { word_limit: 2 }, { answer: q.a }))
-
-// --- Part 4: Academic lecture — note completion
-const l4 = createSection(listeningId, 3,
-  'Part 4: A brief history of coffee',
-  'Complete the notes. Write NO MORE THAN TWO WORDS for each answer.',
-  `<p>A lecturer delivers an introductory lecture on the global history of coffee.</p>`,
-  undefined, undefined,
-  { transcript: 'Good morning everyone, today we\'re going to talk about coffee... [full script].' })
-
-const l4notes = [
-  { p:'Coffee is thought to have originated in the ____ region.', a:'Ethiopian', n:31 },
-  { p:'The Sufis used coffee to stay alert during ____.', a:'prayers', n:32 },
-  { p:'The first European coffee houses appeared in ____.', a:'Venice', n:33 },
-  { p:'In 17th-century England coffee houses were nicknamed "penny ____".', a:'universities', n:34 },
-  { p:'Coffee arrived in Brazil in the year ____.', a:'1727', n:35 },
-  { p:'Today, Brazil produces roughly ____ of the world\'s coffee.', a:['one-third','a third','1/3'], n:36 },
-  { p:'The "first wave" focused on ____ and instant coffee.', a:['convenience'], n:37 },
-  { p:'The "third wave" emphasises direct ____ with farmers.', a:['relationships','relationship'], n:38 },
-  { p:'Climate change threatens about ____% of current coffee-growing land.', a:['50','fifty'], n:39 },
-  { p:'A promising alternative crop being studied is ____.', a:['Liberica','liberica'], n:40 }
-]
-l4notes.forEach((q, i) =>
-  createQ(l4, i, q.n, 'listening_note_completion', q.p, { word_limit: 2 }, { answer: q.a }))
 
 // ---------------------------------------------------------------------------
 // 3) WRITING TESTS (4 tests)
