@@ -120,11 +120,11 @@
           <li class="step">
             <div class="step__num">1</div>
             <h3><Icon name="list" :size="16" /> Pick a mock test</h3>
-            <p>Choose a Reading, Listening, Writing or Speaking test from the library. Each test is a full-length paper with the exact IELTS question mix.</p>
+            <p>Choose a Reading, Listening, Writing or Speaking test from the library. Each test is a full-length test with the exact IELTS question mix.</p>
           </li>
           <li class="step">
             <div class="step__num">2</div>
-            <h3><Icon name="clock" :size="16" /> Sit the paper</h3>
+            <h3><Icon name="clock" :size="16" /> Sit the test</h3>
             <p>The exam renders with the real IELTS topbar, split passage/question layout, question navigator and countdown timer — just like test day.</p>
           </li>
           <li class="step">

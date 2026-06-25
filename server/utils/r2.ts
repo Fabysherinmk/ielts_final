@@ -76,9 +76,7 @@ export function r2PublicUrl(): string {
 
 /** Build the full public URL for an R2 object key. */
 export function r2UrlFor(key: string): string {
-  const prefix = r2PublicUrl()
-  if (!prefix) return `/uploads/${key.replace(/^\/+/, '')}` // Fallback to local path
-  return `${prefix}/${key.replace(/^\/+/, '')}`
+  return `/uploads/${key.replace(/^\/+/, '')}`
 }
 
 // ----- S3-Compatible Lightweight R2 Client Implementation -----

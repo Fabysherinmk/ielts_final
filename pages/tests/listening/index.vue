@@ -5,7 +5,7 @@
         <Icon name="headphones" :size="34" />
         <div>
           <h1>IELTS Practice tests</h1>
-          <p class="text-muted">Listening practice tests — choose a paper to begin</p>
+          <p class="text-muted">Listening practice tests — choose a test to begin</p>
         </div>
       </div>
     </header>

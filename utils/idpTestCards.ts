@@ -54,8 +54,7 @@ export function idpCardTitle(test: { title?: string }, skill: 'reading' | 'liste
 }
 
 export function idpCardFormat(skill: 'reading' | 'listening' | 'writing' | 'speaking', index: number) {
-  if (skill === 'reading' && index === 0) return 'Computer'
-  return 'Paper'
+  return 'Computer'
 }
 
 export function idpTestAccessLink(test: { id: number }, skill: 'reading' | 'listening' | 'writing' | 'speaking') {
