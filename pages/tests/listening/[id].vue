@@ -4,19 +4,13 @@
       <div class="inspera-logo">IELTS</div>
       
       <!-- Top-left audio controls for practice mode -->
-      <div v-if="mode === 'practice'" class="practice-audio-top-left" style="margin-left: 24px; display: flex; align-items: center; gap: 8px;">
-        <div v-if="hasTts" style="display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.06); padding: 4px 10px; border-radius: 6px;">
-          <button type="button" @click="ttsToggle" :title="ttsPlaying ? 'Pause' : 'Play'" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; color: #1e3a8a; padding: 0;">
-            <Icon :name="ttsPlaying ? 'pause-circle' : 'play-circle'" :size="24" />
-          </button>
-          <button type="button" @click="ttsReplay" title="Replay" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; color: #475569; padding: 0;">
-            <Icon name="rotate-ccw" :size="16" />
-          </button>
-          <span style="font-size: 11px; font-weight: 600; color: #334155;">AI Narrator</span>
-        </div>
-        <div v-else-if="currentSection?.audio_path" style="display: flex; align-items: center; background: rgba(0,0,0,0.06); padding: 4px 10px; border-radius: 6px;">
-          <audio :src="currentSection.audio_path" controls style="height: 30px; max-width: 220px;"></audio>
-        </div>
+      <div v-if="mode === 'practice'" class="practice-audio-top-left" style="margin-left: 24px; display: flex; align-items: center;">
+        <WhatsAppVoicePlayer
+          :key="currentSection?.id"
+          :audio-path="currentSection?.audio_path"
+          :tts-script="currentSection?.extra?.tts_script || ''"
+          :has-tts="hasTts"
+        />
       </div>
 
       <div class="inspera-candidate">
